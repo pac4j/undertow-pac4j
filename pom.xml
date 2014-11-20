@@ -29,7 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.plugin.version>3.0</maven.compiler.plugin.version>
         <pac4j.version>1.6.0</pac4j.version>
-        <undertow.version>1.0.14.Final</undertow.version>
+        <undertow.version>1.1.0.Final</undertow.version>
     </properties>
 
     <repositories>
