@@ -15,3 +15,7 @@ hs_err_pid*
 .settings
 .target
 target
+
+### Intellij ###
+.idea/*
+*.iml
