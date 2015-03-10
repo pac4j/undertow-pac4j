@@ -1,4 +1,4 @@
-## What is the undertow-pac4j library ?
+## What is the undertow-pac4j library ? [![Build Status](https://travis-ci.org/pac4j/undertow-pac4j.png?branch=master)](https://travis-ci.org/pac4j/undertow-pac4j)
 
 The **undertow-pac4j** library is an authentication multi-protocols client for JBoss Undertow.
 
