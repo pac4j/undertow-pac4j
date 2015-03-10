@@ -213,3 +213,4 @@ The current version **1.0.0-SNAPSHOT** is under development. It's available on t
 If you have any question, please use the following mailing lists :
 - [pac4j users](https://groups.google.com/forum/?hl=en#!forum/pac4j-users)
 - [pac4j developers](https://groups.google.com/forum/?hl=en#!forum/pac4j-dev)
+
