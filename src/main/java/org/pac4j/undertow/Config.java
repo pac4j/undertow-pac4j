@@ -44,6 +44,13 @@ public final class Config {
 
     private final SessionConfig sessionCookieConfig = new SessionCookieConfig();
 
+    public Config() {
+    }
+
+    public Config(Clients clients) {
+        this.clients = clients;
+    }
+    
     public String getDefaultSuccessUrl() {
         return defaultSuccessUrl;
     }

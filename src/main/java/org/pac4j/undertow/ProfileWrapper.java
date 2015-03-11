@@ -46,11 +46,11 @@ public class ProfileWrapper implements Serializable {
         this.account = new ClientAccount(profile);
     }
 
-    CommonProfile getProfile() {
+    public CommonProfile getProfile() {
         return this.profile;
     }
 
-    Account getAccount() {
+    public Account getAccount() {
         return this.account;
     }
 
