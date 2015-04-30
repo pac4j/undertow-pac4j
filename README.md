@@ -216,7 +216,7 @@ The last released version is the **1.0.0** :
     <dependency>
         <groupId>org.pac4j</groupId>
         <artifactId>undertow-pac4j</artifactId>
-        <version>1.1.0</version>
+        <version>1.0.0</version>
     </dependency>
 
 See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes).
