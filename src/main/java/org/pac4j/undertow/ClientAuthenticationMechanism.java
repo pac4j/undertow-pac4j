@@ -25,10 +25,9 @@ import org.pac4j.core.exception.RequiresHttpAction;
 import org.pac4j.undertow.utils.StorageHelper;
 
 /**
- * Undertow authentication mechanism relying on a pac4j client.
- * <p/>
- * This mechanism first looks for a valid user profile in session. If it is present, the security context
- * is completed, otherwise we redirect to the client's authentication provider.   
+ * <p>Undertow authentication mechanism relying on a pac4j client.</p>
+ * <p>This mechanism first looks for a valid user profile in session. If it is present, the security context
+ * is completed, otherwise we redirect to the client's authentication provider.</p>
  * 
  * @author Michael Remond
  * @since 1.0.0

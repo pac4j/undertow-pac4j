@@ -25,10 +25,9 @@ import java.util.Set;
 import org.pac4j.core.profile.CommonProfile;
 
 /**
- * Wrapper containing a pac4j user profile and an Undertow account.
- * <p/>
- * This wrapper is required because we cannot have a unified class because the getRoles
- * method has a different signature in {@link CommonProfile} and in {@link Account}.
+ * <p>Wrapper containing a pac4j user profile and an Undertow account.</p>
+ * <p>This wrapper is required because we cannot have a unified class because the getRoles
+ * method has a different signature in {@link CommonProfile} and in {@link Account}.</p>
  * 
  * @author Michael Remond
  * @since 1.0.0

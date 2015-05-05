@@ -45,11 +45,11 @@ public class HandlerHelper {
     /**
      * Wrap the given handler with a security configuration by using the pac4j authentication mechanism.
      * 
-     * @param toWrap
-     * @param config
-     * @param clientName
-     * @param isAjax
-     * @return
+     * @param toWrap the handler to wrap
+     * @param config the pac4j configuration
+     * @param clientName the client name
+     * @param isAjax whether it is an AJAX request
+     * @return the handler
      */
     public static HttpHandler requireAuthentication(final HttpHandler toWrap, Config config, final String clientName,
             boolean isAjax) {
@@ -70,8 +70,8 @@ public class HandlerHelper {
     /**
      * Wrap the given handler with the eager form parsing handler in order to read the complete form data.
      * 
-     * @param toWrap
-     * @return
+     * @param toWrap the handler to wrap
+     * @return the handler
      */
     public static HttpHandler addFormParsing(final HttpHandler toWrap) {
         HttpHandler handler = toWrap;
@@ -85,9 +85,9 @@ public class HandlerHelper {
     /**
      * Wrap the given handler to add session capabilities.
      * 
-     * @param toWrap
-     * @param config
-     * @return
+     * @param toWrap the handler to wrap
+     * @param config the pac4j configuration
+     * @return the handler
      */
     public static HttpHandler addSession(final HttpHandler toWrap, Config config) {
         return new SessionAttachmentHandler(toWrap, config.getSessionManager(), config.getSessioncookieconfig());

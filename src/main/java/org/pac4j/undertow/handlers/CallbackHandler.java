@@ -102,8 +102,8 @@ public class CallbackHandler implements HttpHandler {
     /**
      * This method returns the default url from a specified url compared with a default url.
      * 
-     * @param url
-     * @param defaultUrl
+     * @param url the compared url
+     * @param defaultUrl the default url
      * @return the default url
      */
     public static String defaultUrl(final String url, final String defaultUrl) {
