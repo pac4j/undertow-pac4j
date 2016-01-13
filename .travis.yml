@@ -1,7 +1,5 @@
 language: java
 
-sudo: false
-
 script: "mvn package --settings travis/settings.xml"
 
 jdk:
