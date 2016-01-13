@@ -2,6 +2,8 @@ language: java
 
 script: "mvn package --settings travis/settings.xml"
 
+sudo: false
+
 jdk:
   - oraclejdk7
 
