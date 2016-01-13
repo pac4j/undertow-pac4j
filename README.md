@@ -37,7 +37,7 @@ Just follow these easy steps:
 
 ### Add the required dependencies (`undertow-pac4j` + `pac4j-*` libraries)
 
-You need to add a dependency on the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.1.0-SNAPSHOT**) as well as on the appropriate `pac4j` submodules (<em>groupId</em>: **org.pac4j**, *version*: **1.8.4**): the `pac4j-oauth` dependency for OAuth support, the `pac4j-cas` dependency for CAS support, the `pac4j-ldap` module for LDAP authentication, ...
+You need to add a dependency on the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.1.0-SNAPSHOT**) as well as on the appropriate `pac4j` submodules (<em>groupId</em>: **org.pac4j**, *version*: **1.8.5-SNAPSHOT**): the `pac4j-oauth` dependency for OAuth support, the `pac4j-cas` dependency for CAS support, the `pac4j-ldap` module for LDAP authentication, ...
 
 All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
@@ -147,7 +147,7 @@ The demo webapp: [undertow-pac4j-demo](https://github.com/pac4j/undertow-pac4j-d
 
 ## Release notes
 
-See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes). Learn more by browsing the [undertow-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/undertow-pac4j/1.1.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.8.4/index.html).
+See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes). Learn more by browsing the [undertow-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/undertow-pac4j/1.1.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.8.5/index.html).
 
 
 ## Need help?

@@ -152,11 +152,6 @@ public class UndertowWebContext implements WebContext {
     }
 
     @Override
-    public void setResponseCharacterEncoding(final String encoding) {
-        exchange.getResponseHeaders().add(HttpString.tryFromString(HttpConstants.CONTENT_TYPE_HEADER), encoding);
-    }
-
-    @Override
     public void addResponseCookie(final Cookie cookie) {
         final CookieImpl newCookie = new CookieImpl(cookie.getName(), cookie.getValue());
         newCookie.setComment(cookie.getComment());
@@ -185,7 +180,7 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public void setResponseContentType(final String content) {
-        setResponseCharacterEncoding(content);
+        exchange.getResponseHeaders().add(HttpString.tryFromString(HttpConstants.CONTENT_TYPE_HEADER), content);
     }
 
     @Override
