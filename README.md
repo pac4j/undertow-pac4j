@@ -1,88 +1,167 @@
-## What is the undertow-pac4j library ? [![Build Status](https://travis-ci.org/pac4j/undertow-pac4j.png?branch=master)](https://travis-ci.org/pac4j/undertow-pac4j)
+<p align="center">
+  <img src="https://pac4j.github.io/pac4j/img/logo-undertow.png" width="300" />
+</p>
 
-The **undertow-pac4j** library is an authentication multi-protocols client for JBoss Undertow.
+The `undertow-pac4j` project is an **easy and powerful security library for Undertow** web applications which supports authentication and authorization, but also application logout and advanced features like CSRF protection. It's available under the Apache 2 license and based on the **[pac4j security engine](https://github.com/pac4j/pac4j)**.
 
-It supports these 7 authentication mechanisms on client side:
+It supports most authentication mechanisms, called [**clients**](https://github.com/pac4j/pac4j/wiki/Clients):
 
-1. OAuth (1.0 & 2.0)
-2. CAS (1.0, 2.0, SAML, logout & proxy)
-3. HTTP (form & basic auth authentications)
-4. OpenID
-5. SAML (2.0)
-6. GAE UserService
-7. OpenID Connect (1.0).
+- **indirect / stateful clients** are for UI when the user authenticates once at an external provider (like Facebook, a CAS server...) or via a local form (or basic auth popup)  
+- **direct / stateless clients** are for web services when credentials (like basic auth, tokens...) are passed for each HTTP request.
 
-It's available under the Apache 2 license and based on the [pac4j](https://github.com/pac4j/pac4j) library.
+See the [authentication flows](https://github.com/pac4j/pac4j/wiki/Authentication-flows).
 
+| The authentication mechanism you want | The `pac4j-*` submodule(s) you must use
+|---------------------------------------|----------------------------------------
+| OAuth (1.0 & 2.0): Facebook, Twitter, Google, Yahoo, LinkedIn, Github... | `pac4j-oauth`
+| CAS (1.0, 2.0, 3.0, SAML, logout, proxy) | `pac4j-cas`
+| SAML (2.0) | `pac4j-saml`
+| OpenID Connect (1.0) | `pac4j-oidc`
+| HTTP (form, basic auth, IP, header, cookie, GET/POST parameter)<br />+<br />JWT<br />or LDAP<br />or Relational DB<br />or MongoDB<br />or Stormpath<br />or CAS REST API| `pac4j-http`<br />+<br />`pac4j-jwt`<br />or `pac4j-ldap`<br />or `pac4j-sql`<br />or `pac4j-mongo`<br />or `pac4j-stormpath`<br />or `pac4j-cas`
+| Google App Engine UserService | `pac4j-gae`
+| OpenID | `pac4j-openid`
 
-## Providers supported
-
-<table>
-<tr><th>Provider</th><th>Protocol</th><th>Maven dependency</th><th>Client class</th><th>Profile class</th></tr>
-<tr><td>CAS server</td><td>CAS</td><td>pac4j-cas</td><td>CasClient & CasProxyReceptor</td><td>CasProfile</td></tr>
-<tr><td>CAS server using OAuth Wrapper</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>CasOAuthWrapperClient</td><td>CasOAuthWrapperProfile</td></tr>
-<tr><td>DropBox</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>DropBoxClient</td><td>DropBoxProfile</td></tr>
-<tr><td>Facebook</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>FacebookClient</td><td>FacebookProfile</td></tr>
-<tr><td>GitHub</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>GitHubClient</td><td>GitHubProfile</td></tr>
-<tr><td>Google</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>Google2Client</td><td>Google2Profile</td></tr>
-<tr><td>LinkedIn</td><td>OAuth 1.0 & 2.0</td><td>pac4j-oauth</td><td>LinkedInClient & LinkedIn2Client</td><td>LinkedInProfile & LinkedIn2Profile</td></tr>
-<tr><td>Twitter</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>TwitterClient</td><td>TwitterProfile</td></tr>
-<tr><td>Windows Live</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>WindowsLiveClient</td><td>WindowsLiveProfile</td></tr>
-<tr><td>WordPress</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>WordPressClient</td><td>WordPressProfile</td></tr>
-<tr><td>Yahoo</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>YahooClient</td><td>YahooProfile</td></tr>
-<tr><td>PayPal</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>PayPalClient</td><td>PayPalProfile</td></tr>
-<tr><td>Vk</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>VkClient</td><td>VkProfile</td></tr>
-<tr><td>Foursquare</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>FoursquareClient</td><td>FoursquareProfile</td></tr>
-<tr><td>Bitbucket</td><td>OAuth 1.0</td><td>pac4j-oauth</td><td>BitbucketClient</td><td>BitbucketProfile</td></tr>
-<tr><td>ORCiD</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>OrcidClient</td><td>OrcidProfile</td></tr>
-<tr><td>Strava</td><td>OAuth 2.0</td><td>pac4j-oauth</td><td>StravaClient</td><td>StravaProfile</td></tr>
-<tr><td>Web sites with basic auth authentication</td><td>HTTP</td><td>pac4j-http</td><td>BasicAuthClient</td><td>HttpProfile</td></tr>
-<tr><td>Web sites with form authentication</td><td>HTTP</td><td>pac4j-http</td><td>FormClient</td><td>HttpProfile</td></tr>
-<tr><td>Yahoo</td><td>OpenID</td><td>pac4j-openid</td><td>YahooOpenIdClient</td><td>YahooOpenIdProfile</td></tr>
-<tr><td>SAML Identity Provider</td><td>SAML 2.0</td><td>pac4j-saml</td><td>Saml2Client</td><td>Saml2Profile</td></tr>
-<tr><td>Google App Engine User Service</td><td>Gae User Service Mechanism</td><td>pac4j-gae</td><td>GaeUserServiceClient</td><td>GaeUserServiceProfile</td></tr>
-<tr><td>OpenID Connect Provider</td><td>OpenID Connect 1.0</td><td>pac4j-oidc</td><td>OidcClient</td><td>OidcProfile</td></tr>
-</table>
+It also supports many authorization checks, called [**authorizers**](https://github.com/pac4j/pac4j/wiki/Authorizers) available in the `pac4j-core` (and `pac4j-http`) submodules: role / permission checks, IP check, profile type verification, HTTP method verification... as well as regular security protections for CSRF, XSS, cache control, Xframe...
 
 
-## Technical description
+## How to use it?
 
-This library consists of the following main classes :
+First, you need to add a dependency on this library as well as on the appropriate `pac4j` submodules. Then, you must define the [**clients**](https://github.com/pac4j/pac4j/wiki/Clients) for authentication and the [**authorizers**](https://github.com/pac4j/pac4j/wiki/Authorizers) to check authorizations.
 
-1. the **ClientAuthenticationMechanism** is a new Undertow authentication mechanism delegating to the pac4j clients
-2. the **Config** is a configuration holder; important attributes are the Undertow SessionManager and SessionConfig
-3. the **HandlerHelper** contains utility methods for enhancing Undertow handlers with additional functionality like security, form data management and session
-4. the **CallbackHandler** is an Undertow handler to handle the callback of the provider after authentication to finish the authentication process
-5. the **LogoutHandler** is an Undertow handler to handle the logout of the user
+Define the `CallbackHandler` to finish authentication processes if you use indirect clients (like Facebook).
 
-and is based on the <i>pac4j-*</i> libraries.
+Use the `SecurityMechanism` to secure the urls of your web application (using the `clients` parameter for authentication and the `authorizers` parameter for authorizations).
 
-Learn more by browsing the [undertow-pac4j Javadoc](http://www.pac4j.org/apidocs/undertow-pac4j/index.html) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/index.html).
+Just follow these easy steps:
 
 
-## How to use it ?
+### Add the required dependencies (`undertow-pac4j` + `pac4j-*` libraries)
 
-### Add the required dependencies
+You need to add a dependency on the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.1.0-SNAPSHOT**) as well as on the appropriate `pac4j` submodules (<em>groupId</em>: **org.pac4j**, *version*: **1.8.4**): the `pac4j-oauth` dependency for OAuth support, the `pac4j-cas` dependency for CAS support, the `pac4j-ldap` module for LDAP authentication, ...
 
-If you want to use a specific client support, you need to add the appropriate Maven dependency in the *pom.xml* file :
+All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
-* for OAuth support, the *pac4j-oauth* dependency is required
-* for CAS support, the *pac4j-cas* dependency is required
-* for HTTP support, the *pac4j-http* dependency is required
-* for OpenID support, the *pac4j-openid* dependency is required
-* for SAML support, the *pac4j-saml* dependency is required
-* for Google App Engine support, the *pac4j-gae* dependency is required
-* for OpenID Connect support, the *pac4j-oidc* dependency is required.
 
-For example, to add OAuth support, add the following XML snippet :
+### Define the configuration (`Config` + `Clients` + `XXXClient` + `Authorizer`)
 
-    <dependency>
-      <groupId>org.pac4j</groupId>
-      <artifactId>pac4j-oauth</artifactId>
-      <version>1.7.0</version>
-    </dependency>
+Each authentication mechanism (Facebook, Twitter, a CAS server...) is defined by a client (implementing the `org.pac4j.core.client.Client` interface). All clients must be gathered in a `org.pac4j.core.client.Clients` class.
 
-As these snapshot dependencies are only available in the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j/), the appropriate repository must be added in the *pom.xml* file also :
+All `Clients` must be defined in a `org.pac4j.core.config.Config` object as well as the authorizers which will be used by the application.  
+For example:
+
+    OidcClient oidcClient = new OidcClient();
+    oidcClient.setClientID("id");
+    oidcClient.setSecret("secret");
+    oidcClient.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration");
+    oidcClient.addCustomParam("prompt", "consent");
+    
+    SAML2ClientConfiguration cfg = new SAML2ClientConfiguration("resource:samlKeystore.jks", "pac4j-demo-passwd", "pac4j-demo-passwd", "resource:testshib-providers.xml");
+    cfg.setMaximumAuthenticationLifetime(3600);
+    cfg.setServiceProviderEntityId("urn:mace:saml:pac4j.org");
+    cfg.setServiceProviderMetadataPath(new File("target", "sp-metadata.xml").getAbsolutePath());
+    SAML2Client saml2Client = new SAML2Client(cfg);
+    
+    FacebookClient facebookClient = new FacebookClient("fbId", "fbSecret");
+    TwitterClient twitterClient = new TwitterClient("twId", "twSecret");
+    
+    FormClient formClient = new FormClient("http://localhost:8080/theForm.jsp", new SimpleTestUsernamePasswordAuthenticator());
+    IndirectBasicAuthClient basicAuthClient = new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
+    
+    CasClient casClient = new CasClient("http://mycasserver/login");
+  
+    ParameterClient parameterClient = new ParameterClient("token", new JwtAuthenticator("salt"));
+    
+    Clients clients = new Clients("http://localhost:8080/callback", oidcClient, saml2Client, facebookClient, twitterClient, formClient, basicAuthClient, casClient, parameterClient);
+    
+    Config config = new Config(clients);
+    config.addAuthorizer("admin", new RequireAnyRoleAuthorizer("ROLE_ADMIN"));
+    config.addAuthorizer("custom", new CustomAuthorizer());
+
+"http://localhost:8080/callback" is the url of the callback endpoint (see below). It may not be defined for REST support / direct clients only.
+
+
+### Define the callback endpoint (only for stateful / indirect authentication mechanisms)
+
+Indirect clients rely on external identity providers (like Facebook) and thus require to define a callback endpoint in the application where the user will be redirected after login at the identity provider. For REST support / direct clients only, this callback endpoint is not necessary.  
+To define the /callback url, you must use the `CallbackHandler`:
+
+    path.addExactPath("/callback", CallbackHandler.build(config));
+
+
+### Protect an url (authentication + authorization)
+
+You can protect an url and require the user to be authenticated by a client (and optionally have the appropriate authorizations) by using the `SecurityMechanism`.  
+For example, to protect the /facebook url with a Facebook authentication:
+
+    path.addPrefixPath("/facebook/", SecurityMechanism.build(theWrappedHandler, config, "FacebookClient"));
+
+The following parameters can be defined:
+
+- `config`: the configuration of clients and authorizers
+- `clients` (optional): the list of client names (separated by commas) used for authentication. If the user is not authenticated, direct clients are tried successively then if the user is still not authenticated and if the first client is an indirect one, this client is used to start the authentication. Otherwise, a 401 HTTP error is returned. If the *client_name* request parameter is provided, only the matching client is selected
+- `authorizers` (optional): the list of authorizer names (separated by commas) used to check authorizations. If the user is not authorized, a 403 HTTP error is returned. By default (if blank), the user only requires to be authenticated to access the resource. The following authorizers are available by default:
+  * `hsts` to use the `StrictTransportSecurityHeader` authorizer, `nosniff` for `XContentTypeOptionsHeader`, `noframe` for `XFrameOptionsHeader `, `xssprotection` for `XSSProtectionHeader `, `nocache` for `CacheControlHeader ` or `securityHeaders` for the five previous authorizers
+  * `csrfToken` to use the `CsrfTokenGeneratorAuthorizer` with the `DefaultCsrfTokenGenerator` (it generates a CSRF token and adds it to the request and save it in the `pac4jCsrfToken` cookie), `csrfCheck` to check that this previous token has been sent as the `pac4jCsrfToken` header or parameter in a POST request and `csrf` to use both previous authorizers.
+
+
+### Get the user profile
+
+You can test if the user is authenticated using the `ProfileManager.isAuthenticated()` method or get the user profile using the `ProfileManager.get(true)` method (`false` not to use the session, but only the current HTTP request):
+
+    UndertowWebContext context = new UndertowWebContext(exchange);
+    ProfileManager manager = new ProfileManager(context);
+    UserProfile profile = manager.get(true);
+
+The retrieved profile is at least a `CommonProfile`, from which you can retrieve the most common properties that all profiles share. But you can also cast the user profile to the appropriate profile according to the provider used for authentication. For example, after a Facebook authentication:
+ 
+    FacebookProfile facebookProfile = (FacebookProfile) commonProfile;
+
+
+### Logout
+
+You can log out the current authenticated user using the `ApplicationLogoutHandler`:
+
+    path.addExactPath("/logout", new ApplicationLogoutHandler(config));
+
+To perfom the logout, you must call the /logout url. A blank page is displayed by default unless an *url* request parameter is provided. In that case, the user will be redirected to this specified url (if it matches the logout url pattern defined) or to the default logout url otherwise.
+
+The following parameters can be defined:
+
+- `defaultUrl` (optional): the default logout url if the provided *url* parameter does not match the `logoutUrlPattern` (by default: /)
+- `logoutUrlPattern` (optional): the logout url pattern that the logout url must match (it's a security check, only relative urls are allowed by default).
+
+
+## Migration guide (1.0 -> 1.1)
+
+The `ClientAuthenticationMechanism` has been replaced by the `SecurityMechanism` and now handle both authentication and authorizations.
+
+The `HttpResponseHelper` has been renamed in `ExchangeHelper`.
+
+The application logout process is managed with the `ApplicationLogoutHandler`.
+
+
+## Demo
+
+The demo webapp: [undertow-pac4j-demo](https://github.com/pac4j/undertow-pac4j-demo) is available for tests and implement many authentication mechanisms: Facebook, Twitter, form, basic auth, CAS, SAML, OpenID Connect, JWT...
+
+
+## Release notes
+
+See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes). Learn more by browsing the [undertow-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/undertow-pac4j/1.1.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.8.4/index.html).
+
+
+## Need help?
+
+If you have any question, please use the following mailing lists:
+
+- [pac4j users](https://groups.google.com/forum/?hl=en#!forum/pac4j-users)
+- [pac4j developers](https://groups.google.com/forum/?hl=en#!forum/pac4j-dev)
+
+## Development
+
+The version 1.1.0-SNAPSHOT is under development.
+
+Maven artifacts are built via Travis: [![Build Status](https://travis-ci.org/pac4j/undertow-pac4j.png?branch=master)](https://travis-ci.org/pac4j/undertow-pac4j) and available in the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j). This repository must be added in the Maven *pom.xml* file for example:
 
     <repositories>
       <repository>
@@ -97,132 +176,3 @@ As these snapshot dependencies are only available in the [Sonatype snapshots rep
         </snapshots>
       </repository>
     </repositories>
-
-### Define the clients and the config object
-
-All the clients used to communicate with various providers (Facebook, Twitter, a CAS server...) must be defined in your Undertow Server. For example :
-
-    public class DemoServer {
-      
-      public Clients buildClients() {
-        final FacebookClient facebookClient = new FacebookClient("fbkey", "fbsecret");
-        final TwitterClient twitterClient = new TwitterClient("twkey", "twsecret");
-        // HTTP
-        final FormClient formClient = new FormClient("http://localhost:8080/theForm.jsp", new SimpleTestUsernamePasswordAuthenticator());
-        final BasicAuthClient basicAuthClient = new BasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());        
-        // CAS
-        final CasClient casClient = new CasClient();
-        casClient.setCasLoginUrl("http://localhost:8888/cas/login");        
-        // OpenID
-        final GoogleOpenIdClient googleOpenIdClient = new GoogleOpenIdClient();
-        final Clients clients = new Clients("http://localhost:8080/callback", facebookClient, twitterClient, formClient, basicAuthClient, casClient, googleOpenIdClient);
-        return clients;
-      }
-      
-      public static void main(final String[] args) {
-
-        Config config = new Config();
-        config.setClients(buildClients());
-        
-      }
-    }
-    
-### Define the "callback filter"
-
-To handle callback from providers, you need to define the appropriate handler :
-
-    public static void main(final String[] args) {
-
-        Config config = new Config();
-        config.setClients(buildClients());
-        PathHandler path = new PathHandler();
-        path.addExactPath("/callback", CallbackHandler.build(config));
-        
-      }
-
-### Protect the urls
-
-You can protect your urls and force the user to be authenticated by a client by using the *requireAuthentication* handler helper.  
-For example, for Facebook if you want to protect the facebookHandler :
-
-    public static void main(final String[] args) {
-
-        Config config = new Config();
-        config.setClients(buildClients());
-        PathHandler path = new PathHandler();
-        path.addExactPath("/callback", CallbackHandler.build(config));
-        path.addExactPath("/facebook/index.html",
-                HandlerHelper.requireAuthentication(facebookHandler, config, "FacebookClient", false));
-        
-    }
-
-### Add session capability
-
-Finally you can finalize the configuration by adding session management and start the server:
-
-    public static void main(final String[] args) {
-
-        Config config = new Config();
-        config.setClients(buildClients());
-        PathHandler path = new PathHandler();
-        path.addExactPath("/callback", CallbackHandler.build(config));
-        path.addExactPath("/facebook/index.html",
-                HandlerHelper.requireAuthentication(facebookHandler, config, "FacebookClient", false));
-        
-        Undertow server = Undertow.builder().addListener(8080, "localhost")
-                .setHandler(HandlerHelper.addSession(path, config)).build();
-        server.start();
-        
-    }
-
-### Get redirection urls
-
-You can also explicitely compute a redirection url to a provider for authentication by using the *getRedirectionUrl* method. For example with Facebook :
-
-    StorageHelper.createSession(exchange);
-    WebContext context = new UndertowWebContext(exchange);
-    Clients client = config.getClients();
-    FacebookClient fbClient = (FacebookClient) client.findClient("FacebookClient");
-    String redirectionUrl = Client.getRedirectionUrl(context, false, false);
-
-### Get the user profile
-
-After successful authentication, you can test if the user is authenticated using ```StorageHelper.getProfile()```.
-
-This method returns a wrapper containing an undertow account and a pac4j profile. This profile is a *CommonProfile*, from which you can retrieve the most common properties that all profiles share. 
-But you can also cast the user profile to the appropriate profile according to the provider used for authentication.
-For example, after a Facebook authentication :
- 
-    // facebook profile
-    FacebookProfile facebookProfile = (FacebookProfile) commonProfile;
-
-Or for all the OAuth 1.0/2.0 profiles, to get the access token :
-    
-    OAuth10Profile oauthProfile = (OAuth10Profile) commonProfile
-    String accessToken = oauthProfile.getAccessToken();
-    // or
-    String accessToken = facebookProfile.getAccessToken();
-
-### Demo
-
-A demo with Facebook, Twitter, CAS, form authentication and basic auth authentication providers is available with [undertow-pac4j-demo](https://github.com/pac4j/undertow-pac4j-demo).
-
-## Versions
-
-The current version **1.0.1-SNAPSHOT** is under development. It's available on the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j) as a Maven dependency :
-
-The last released version is the **1.0.0** :
-
-    <dependency>
-        <groupId>org.pac4j</groupId>
-        <artifactId>undertow-pac4j</artifactId>
-        <version>1.0.0</version>
-    </dependency>
-
-See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes).
-
-## Contact
-
-If you have any question, please use the following mailing lists :
-- [pac4j users](https://groups.google.com/forum/?hl=en#!forum/pac4j-users)
-- [pac4j developers](https://groups.google.com/forum/?hl=en#!forum/pac4j-dev)
