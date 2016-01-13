@@ -47,7 +47,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * <p>This filter protects a resource (authentication + authorization).</p>
+ * <p>This security mechanism protects a resource (authentication + authorization).</p>
  * <ul>
  *  <li>If a stateful / indirect client is used, it relies on the session to get the user profile (after the {@link org.pac4j.undertow.handlers.CallbackHandler} has terminated the authentication process)</li>
  *  <li>If a stateless / direct client is used, it validates the provided credentials from the request and retrieves the user profile if the authentication succeeds.</li>
