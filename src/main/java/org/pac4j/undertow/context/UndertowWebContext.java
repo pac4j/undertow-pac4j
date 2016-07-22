@@ -1,19 +1,4 @@
-/*
-  Copyright 2014 - 2016 pac4j organization
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-package org.pac4j.undertow;
+package org.pac4j.undertow.context;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.CookieImpl;
@@ -32,7 +17,6 @@ import org.pac4j.core.context.HttpConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.util.CommonHelper;
 import org.pac4j.core.util.JavaSerializationHelper;
-import org.pac4j.undertow.session.UndertowSessionStore;
 
 /**
  * The webcontext implementation for Undertow.
@@ -55,6 +39,10 @@ public class UndertowWebContext implements WebContext {
 
     public HttpServerExchange getExchange() {
         return exchange;
+    }
+
+    public UndertowSessionStore getSessionStore() {
+        return sessionStore;
     }
 
     @Override
@@ -187,8 +175,8 @@ public class UndertowWebContext implements WebContext {
     public Collection<Cookie> getRequestCookies() {
         Map<String, io.undertow.server.handlers.Cookie> cookiesMap = exchange.getRequestCookies();
         final List<Cookie> cookies = new ArrayList<>();
-        for (final String key : cookiesMap.keySet()) {
-            final io.undertow.server.handlers.Cookie uCookie = cookiesMap.get(key);
+        for (final Entry<String, io.undertow.server.handlers.Cookie> entry : cookiesMap.entrySet()) {
+            final io.undertow.server.handlers.Cookie uCookie = entry.getValue();
             final Cookie cookie = new Cookie(uCookie.getName(), uCookie.getValue());
             cookie.setComment(uCookie.getComment());
             cookie.setDomain(uCookie.getDomain());

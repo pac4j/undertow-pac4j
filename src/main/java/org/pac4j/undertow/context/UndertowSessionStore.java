@@ -1,26 +1,10 @@
-/*
-  Copyright 2014 - 2016 pac4j organization
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-package org.pac4j.undertow.session;
+package org.pac4j.undertow.context;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.session.*;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
-import org.pac4j.undertow.UndertowWebContext;
 
 /**
  * Specific session store for Undertow relying on {@link SessionManager} and {@link SessionConfig}.
@@ -33,17 +17,12 @@ public class UndertowSessionStore implements SessionStore {
     private final SessionManager sessionManager;
     private final SessionConfig sessionConfig;
 
-    public UndertowSessionStore() {
-        this.sessionManager = new InMemorySessionManager("SessionManager");
-        this.sessionConfig = new SessionCookieConfig();
-    }
-
     public UndertowSessionStore(final SessionManager sessionManager, final SessionConfig sessionConfig) {
         this.sessionManager = sessionManager;
         this.sessionConfig = sessionConfig;
     }
 
-    private Session getSession(final WebContext context) {
+    protected Session getSession(final WebContext context) {
         final UndertowWebContext webContext = (UndertowWebContext) context;
         final HttpServerExchange exchange = webContext.getExchange();
         Session session = this.sessionManager.getSession(exchange, this.sessionConfig);
@@ -74,8 +53,14 @@ public class UndertowSessionStore implements SessionStore {
         }
     }
 
-    public HttpHandler addSessionHandler(final HttpHandler toWrap) {
-        return new SessionAttachmentHandler(toWrap, sessionManager, sessionConfig);
+    /**
+     * Add a default session handler (sessions in memory and cookie based).
+     *
+     * @param toWrap the handler to wrap
+     * @return the session handler
+     */
+    public static HttpHandler addDefaultSessionHandler(final HttpHandler toWrap) {
+        return new SessionAttachmentHandler(toWrap, new InMemorySessionManager("SessionManager"), new SessionCookieConfig());
     }
 
     public SessionManager getSessionManager() {
