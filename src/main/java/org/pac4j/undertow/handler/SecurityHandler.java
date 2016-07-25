@@ -4,9 +4,9 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.BlockingHandler;
 import org.pac4j.core.config.Config;
+import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.undertow.context.UndertowWebContext;
-import org.pac4j.undertow.engine.UndertowSecurityLogic;
 import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
@@ -23,7 +23,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class SecurityHandler implements HttpHandler {
 
-    private SecurityLogic<Object, UndertowWebContext> securityLogic = new UndertowSecurityLogic();
+    private SecurityLogic<Object, UndertowWebContext> securityLogic = new DefaultSecurityLogic<>();
 
     private HttpHandler toWrap;
 
@@ -37,7 +37,7 @@ public class SecurityHandler implements HttpHandler {
 
     private Boolean multiProfile;
 
-    private SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
+    protected SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
         this.toWrap = toWrap;
         this.config = config;
         this.clients = clients;
@@ -63,7 +63,14 @@ public class SecurityHandler implements HttpHandler {
     }
 
     public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
+        return build(toWrap, config, clients, authorizers, matchers, multiProfile, null);
+    }
+
+    public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile, final SecurityLogic<Object, UndertowWebContext> securityLogic) {
         final SecurityHandler securityHandler = new SecurityHandler(toWrap, config, clients, authorizers, matchers, multiProfile);
+        if (securityLogic != null) {
+            securityHandler.setSecurityLogic(securityLogic);
+        }
         return new BlockingHandler(securityHandler);
     }
 
@@ -71,7 +78,8 @@ public class SecurityHandler implements HttpHandler {
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
         assertNotNull("securityLogic", securityLogic);
-        final UndertowWebContext context = new UndertowWebContext(exchange);
+        assertNotNull("config", config);
+        final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
         securityLogic.perform(context, this.config, (ctx, parameters) -> {
 
@@ -79,5 +87,13 @@ public class SecurityHandler implements HttpHandler {
             return null;
 
         }, UndertowNopHttpActionAdapter.INSTANCE, this.clients, this.authorizers, this.matchers, this.multiProfile);
+    }
+
+    protected SecurityLogic<Object, UndertowWebContext> getSecurityLogic() {
+        return securityLogic;
+    }
+
+    protected void setSecurityLogic(SecurityLogic<Object, UndertowWebContext> securityLogic) {
+        this.securityLogic = securityLogic;
     }
 }

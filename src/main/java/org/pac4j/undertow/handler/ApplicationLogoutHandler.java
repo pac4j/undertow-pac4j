@@ -48,7 +48,8 @@ public class ApplicationLogoutHandler implements HttpHandler {
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
         assertNotNull("applicationLogoutLogic", applicationLogoutLogic);
-        final UndertowWebContext context = new UndertowWebContext(exchange);
+        assertNotNull("config", config);
+        final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
         applicationLogoutLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE, this.defaultUrl, this.logoutUrlPattern);
     }

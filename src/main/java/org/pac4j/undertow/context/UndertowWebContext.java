@@ -4,8 +4,6 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.CookieImpl;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
-import io.undertow.server.session.SessionConfig;
-import io.undertow.server.session.SessionManager;
 import io.undertow.util.HttpString;
 
 import java.io.Serializable;
@@ -14,9 +12,13 @@ import java.util.Map.Entry;
 
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.HttpConstants;
+import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.session.SessionStore;
+import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.util.CommonHelper;
 import org.pac4j.core.util.JavaSerializationHelper;
+import org.pac4j.undertow.util.UndertowHelper;
 
 /**
  * The webcontext implementation for Undertow.
@@ -30,18 +32,26 @@ public class UndertowWebContext implements WebContext {
     private final static JavaSerializationHelper JAVA_SERIALIZATION_HELPER = new JavaSerializationHelper();
 
     private final HttpServerExchange exchange;
-    private final UndertowSessionStore sessionStore;
+    private final SessionStore<UndertowWebContext> sessionStore;
 
     public UndertowWebContext(final HttpServerExchange exchange) {
+        this(exchange, null);
+    }
+
+    public UndertowWebContext(final HttpServerExchange exchange, final SessionStore<UndertowWebContext> sessionStore) {
         this.exchange = exchange;
-        this.sessionStore = new UndertowSessionStore(exchange.getAttachment(SessionManager.ATTACHMENT_KEY), exchange.getAttachment(SessionConfig.ATTACHMENT_KEY));
+        if (sessionStore != null) {
+            this.sessionStore = sessionStore;
+        } else {
+            this.sessionStore = new UndertowSessionStore(exchange);
+        }
     }
 
     public HttpServerExchange getExchange() {
         return exchange;
     }
 
-    public UndertowSessionStore getSessionStore() {
+    public SessionStore<UndertowWebContext> getSessionStore() {
         return sessionStore;
     }
 
@@ -87,7 +97,11 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Object getSessionAttribute(final String name) {
-        return sessionStore.get(this, name);
+        final Object value = sessionStore.get(this, name);
+        if (Pac4jConstants.USER_PROFILES.equals(name)) {
+            UndertowHelper.populateContext(this, (LinkedHashMap<String, CommonProfile>) value);
+        }
+        return value;
     }
 
     @Override
@@ -196,15 +210,19 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Object getRequestAttribute(final String name) {
+        Object value = null;
         // TODO: not sure if it can be used as request attribute
-        Deque<String> value = exchange.getPathParameters().get(name);
-        if (value != null) {
-            final String serializedValue = value.getFirst();
+        Deque<String> v = exchange.getPathParameters().get(name);
+        if (v != null) {
+            final String serializedValue = v.getFirst();
             if (serializedValue != null) {
-                return JAVA_SERIALIZATION_HELPER.unserializeFromBase64(serializedValue);
+                value = JAVA_SERIALIZATION_HELPER.unserializeFromBase64(serializedValue);
             }
         }
-        return null;
+        if (Pac4jConstants.USER_PROFILES.equals(name)) {
+            UndertowHelper.populateContext(this, (LinkedHashMap<String, CommonProfile>) value);
+        }
+        return value;
     }
 
     @Override

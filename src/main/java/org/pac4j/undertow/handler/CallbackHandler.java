@@ -35,7 +35,7 @@ public class CallbackHandler implements HttpHandler {
 
     private Boolean multiProfile;
 
-    private CallbackHandler(final Config config, final String defaultUrl, final Boolean multiProfile) {
+    protected CallbackHandler(final Config config, final String defaultUrl, final Boolean multiProfile)  {
         this.config = config;
         this.defaultUrl = defaultUrl;
         this.multiProfile = multiProfile;
@@ -50,9 +50,16 @@ public class CallbackHandler implements HttpHandler {
     }
 
     public static HttpHandler build(final Config config, final String defaultUrl, final Boolean multiProfile) {
+        return build(config, defaultUrl, multiProfile, null);
+    }
+
+    public static HttpHandler build(final Config config, final String defaultUrl, final Boolean multiProfile, final CallbackLogic<Object, UndertowWebContext> callbackLogic) {
         final FormParserFactory factory = FormParserFactory.builder().addParser(new FormEncodedDataDefinition()).build();
         final EagerFormParsingHandler formHandler = new EagerFormParsingHandler(factory);
         final CallbackHandler callbackHandler = new CallbackHandler(config, defaultUrl, multiProfile);
+        if (callbackLogic != null) {
+            callbackHandler.setCallbackLogic(callbackLogic);
+        }
         formHandler.setNext(callbackHandler);
         return new BlockingHandler(formHandler);
     }
@@ -61,8 +68,17 @@ public class CallbackHandler implements HttpHandler {
     public void handleRequest(final HttpServerExchange exchange) {
 
         assertNotNull("callbackLogic", callbackLogic);
-        final UndertowWebContext context = new UndertowWebContext(exchange);
+        assertNotNull("config", config);
+        final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
         callbackLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE, this.defaultUrl, this.multiProfile, false);
+    }
+
+    protected CallbackLogic<Object, UndertowWebContext> getCallbackLogic() {
+        return callbackLogic;
+    }
+
+    protected void setCallbackLogic(CallbackLogic<Object, UndertowWebContext> callbackLogic) {
+        this.callbackLogic = callbackLogic;
     }
 }
