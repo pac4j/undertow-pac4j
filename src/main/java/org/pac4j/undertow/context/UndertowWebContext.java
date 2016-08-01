@@ -72,7 +72,7 @@ public class UndertowWebContext implements WebContext {
     @Override
     public Map<String, String[]> getRequestParameters() {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
-        Map<String, String[]> map = new HashMap<String, String[]>();
+        Map<String, String[]> map = new HashMap<>();
         for (Entry<String, Deque<String>> entry : params.entrySet()) {
             map.put(entry.getKey(), entry.getValue().toArray(new String[entry.getValue().size()]));
         }
