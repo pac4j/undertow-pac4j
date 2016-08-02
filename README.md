@@ -174,7 +174,7 @@ if (securityContext != null) {
 }
 ```
 
-In fact, the Undertow `SecurityContext` is populated by the `SecurityHandler`, so you may need to use the `AnonymousClient` or directly the regular pac4j `ProfileManager` for anonmouys urls:
+In fact, the Undertow `SecurityContext` is populated by the `SecurityHandler`, so you may need to use the `AnonymousClient` or directly the regular pac4j `ProfileManager` for anonymous urls:
 
 ```java
 UndertowWebContext context = new UndertowWebContext(exchange);
