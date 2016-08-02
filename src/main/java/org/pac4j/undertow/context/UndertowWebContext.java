@@ -1,26 +1,9 @@
-/*
-  Copyright 2014 - 2016 pac4j organization
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
- */
-package org.pac4j.undertow;
+package org.pac4j.undertow.context;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.CookieImpl;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
-import io.undertow.server.session.SessionConfig;
-import io.undertow.server.session.SessionManager;
 import io.undertow.util.HttpString;
 
 import java.io.Serializable;
@@ -29,10 +12,13 @@ import java.util.Map.Entry;
 
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.HttpConstants;
+import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.session.SessionStore;
+import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.util.CommonHelper;
 import org.pac4j.core.util.JavaSerializationHelper;
-import org.pac4j.undertow.session.UndertowSessionStore;
+import org.pac4j.undertow.util.UndertowHelper;
 
 /**
  * The webcontext implementation for Undertow.
@@ -46,15 +32,27 @@ public class UndertowWebContext implements WebContext {
     private final static JavaSerializationHelper JAVA_SERIALIZATION_HELPER = new JavaSerializationHelper();
 
     private final HttpServerExchange exchange;
-    private final UndertowSessionStore sessionStore;
+    private final SessionStore<UndertowWebContext> sessionStore;
 
     public UndertowWebContext(final HttpServerExchange exchange) {
+        this(exchange, null);
+    }
+
+    public UndertowWebContext(final HttpServerExchange exchange, final SessionStore<UndertowWebContext> sessionStore) {
         this.exchange = exchange;
-        this.sessionStore = new UndertowSessionStore(exchange.getAttachment(SessionManager.ATTACHMENT_KEY), exchange.getAttachment(SessionConfig.ATTACHMENT_KEY));
+        if (sessionStore != null) {
+            this.sessionStore = sessionStore;
+        } else {
+            this.sessionStore = new UndertowSessionStore(exchange);
+        }
     }
 
     public HttpServerExchange getExchange() {
         return exchange;
+    }
+
+    public SessionStore<UndertowWebContext> getSessionStore() {
+        return sessionStore;
     }
 
     @Override
@@ -74,7 +72,7 @@ public class UndertowWebContext implements WebContext {
     @Override
     public Map<String, String[]> getRequestParameters() {
         Map<String, Deque<String>> params = exchange.getQueryParameters();
-        Map<String, String[]> map = new HashMap<String, String[]>();
+        Map<String, String[]> map = new HashMap<>();
         for (Entry<String, Deque<String>> entry : params.entrySet()) {
             map.put(entry.getKey(), entry.getValue().toArray(new String[entry.getValue().size()]));
         }
@@ -99,7 +97,11 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Object getSessionAttribute(final String name) {
-        return sessionStore.get(this, name);
+        final Object value = sessionStore.get(this, name);
+        if (Pac4jConstants.USER_PROFILES.equals(name)) {
+            UndertowHelper.populateContext(this, (LinkedHashMap<String, CommonProfile>) value);
+        }
+        return value;
     }
 
     @Override
@@ -187,8 +189,8 @@ public class UndertowWebContext implements WebContext {
     public Collection<Cookie> getRequestCookies() {
         Map<String, io.undertow.server.handlers.Cookie> cookiesMap = exchange.getRequestCookies();
         final List<Cookie> cookies = new ArrayList<>();
-        for (final String key : cookiesMap.keySet()) {
-            final io.undertow.server.handlers.Cookie uCookie = cookiesMap.get(key);
+        for (final Entry<String, io.undertow.server.handlers.Cookie> entry : cookiesMap.entrySet()) {
+            final io.undertow.server.handlers.Cookie uCookie = entry.getValue();
             final Cookie cookie = new Cookie(uCookie.getName(), uCookie.getValue());
             cookie.setComment(uCookie.getComment());
             cookie.setDomain(uCookie.getDomain());
@@ -208,15 +210,19 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Object getRequestAttribute(final String name) {
+        Object value = null;
         // TODO: not sure if it can be used as request attribute
-        Deque<String> value = exchange.getPathParameters().get(name);
-        if (value != null) {
-            final String serializedValue = value.getFirst();
+        Deque<String> v = exchange.getPathParameters().get(name);
+        if (v != null) {
+            final String serializedValue = v.getFirst();
             if (serializedValue != null) {
-                return JAVA_SERIALIZATION_HELPER.unserializeFromBase64(serializedValue);
+                value = JAVA_SERIALIZATION_HELPER.unserializeFromBase64(serializedValue);
             }
         }
-        return null;
+        if (Pac4jConstants.USER_PROFILES.equals(name)) {
+            UndertowHelper.populateContext(this, (LinkedHashMap<String, CommonProfile>) value);
+        }
+        return value;
     }
 
     @Override
