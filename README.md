@@ -2,38 +2,39 @@
   <img src="https://pac4j.github.io/pac4j/img/logo-undertow.png" width="300" />
 </p>
 
-
 The `undertow-pac4j` project is an **easy and powerful security library for Undertow** web applications which supports authentication and authorization, but also application logout and advanced features like CSRF protection.
 It's based on Java 8, Undertow 1.3 and on the **[pac4j security engine](https://github.com/pac4j/pac4j)**. It's available under the Apache 2 license.
 
-**Main concepts and components:**
+[**Main concepts and components:**](http://www.pac4j.org/docs/main-concepts-and-components.html)
 
-1) A [**client**](https://github.com/pac4j/pac4j/wiki/Clients) represents an authentication mechanism (CAS, OAuth, SAML, OpenID Connect, LDAP, JWT...) It performs the login process and returns a user profile. An indirect client is for UI authentication while a direct client is for web services authentication
+1) A [**client**](http://www.pac4j.org/docs/clients.html) represents an authentication mechanism. It performs the login process and returns a user profile. An indirect client is for UI authentication while a direct client is for web services authentication:
 
-2) An [**authorizer**](https://github.com/pac4j/pac4j/wiki/Authorizers) is meant to check authorizations on the authenticated user profile(s) (role / permission, ...) or on the current web context (IP check, CSRF...)
+&#9656; OAuth - SAML - CAS - OpenID Connect - HTTP - OpenID - Google App Engine - LDAP - SQL - JWT - MongoDB - Stormpath - IP address
 
-3) A [**matcher**](https://github.com/pac4j/pac4j/wiki/Matchers) defines whether the security must apply on a specific url
+2) An [**authorizer**](http://www.pac4j.org/docs/authorizers.html) is meant to check authorizations on the authenticated user profile(s) or on the current web context:
 
-4) A [**config**](https://github.com/pac4j/pac4j/blob/master/pac4j-core/src/main/java/org/pac4j/core/config/Config.java) defines the security configuration via clients, authorizers and matchers
+&#9656; Roles / permissions - Anonymous / remember-me / (fully) authenticated - Profile type, attribute -  CORS - CSRF - Security headers - IP address, HTTP method
 
-5) The `SecurityHandler` protects an url by checking that the user is authenticated and that the authorizations are valid, according to the clients and authorizers configuration. If the user is not authenticated, it performs authentication for direct clients or starts the login process for indirect clients
+3) The `SecurityHandler` protects an url by checking that the user is authenticated and that the authorizations are valid, according to the clients and authorizers configuration. If the user is not authenticated, it performs authentication for direct clients or starts the login process for indirect clients
 
-6) The `CallbackHandler` finishes the login process for an indirect client
+4) The `CallbackHandler` finishes the login process for an indirect client
 
-7) The `ApplicationLogoutHandler` logs out the user from the application.
+5) The `ApplicationLogoutHandler` logs out the user from the application.
+
+==
 
 Just follow these easy steps to secure your Undertow web application:
-
 
 ### 1) Add the required dependencies (`undertow-pac4j` + `pac4j-*` libraries)
 
 You need to add a dependency on:
  
 - the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.2.0**)
-- the appropriate `pac4j` [submodules](https://github.com/pac4j/pac4j/wiki/Clients) (<em>groupId</em>: **org.pac4j**, *version*: **1.9.1**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
+- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **1.9.1**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
 
 All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
+---
 
 ### 2) Define the configuration (`Config` + `Client` + `Authorizer`)
 
@@ -88,10 +89,11 @@ public class DemoConfigFactory implements ConfigFactory {
 
 Notice that you can define:
 
-1) a specific [`SessionStore`](https://github.com/pac4j/pac4j/wiki/SessionStore) using the `setSessionStore(sessionStore)` method (by default, it uses the `UndertowSessionStore` which relies on the Undertow session configuration)
+1) a specific [`SessionStore`](http://www.pac4j.org/docs/session-store.html) using the `setSessionStore(sessionStore)` method (by default, it uses the `UndertowSessionStore` which relies on the Undertow session configuration)
 
-2) specific [matchers](https://github.com/pac4j/pac4j/wiki/Matchers) via the `addMatcher(name, Matcher)` method.
+2) specific [matchers](http://www.pac4j.org/docs/matchers.html) via the `addMatcher(name, Matcher)` method.
 
+---
 
 ### 3) Protect urls (`SecurityHandler`)
 
