@@ -12,13 +12,10 @@ import java.util.Map.Entry;
 
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.HttpConstants;
-import org.pac4j.core.context.Pac4jConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
-import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.util.CommonHelper;
 import org.pac4j.core.util.JavaSerializationHelper;
-import org.pac4j.undertow.util.UndertowHelper;
 
 /**
  * The webcontext implementation for Undertow.
@@ -97,11 +94,7 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Object getSessionAttribute(final String name) {
-        final Object value = sessionStore.get(this, name);
-        if (Pac4jConstants.USER_PROFILES.equals(name)) {
-            UndertowHelper.populateContext(this, (LinkedHashMap<String, CommonProfile>) value);
-        }
-        return value;
+        return sessionStore.get(this, name);
     }
 
     @Override
@@ -218,9 +211,6 @@ public class UndertowWebContext implements WebContext {
             if (serializedValue != null) {
                 value = JAVA_SERIALIZATION_HELPER.unserializeFromBase64(serializedValue);
             }
-        }
-        if (Pac4jConstants.USER_PROFILES.equals(name)) {
-            UndertowHelper.populateContext(this, (LinkedHashMap<String, CommonProfile>) value);
         }
         return value;
     }
