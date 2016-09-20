@@ -8,6 +8,7 @@ import org.pac4j.core.engine.ApplicationLogoutLogic;
 import org.pac4j.core.engine.DefaultApplicationLogoutLogic;
 import org.pac4j.undertow.context.UndertowWebContext;
 import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
+import org.pac4j.undertow.profile.UndertowProfileManager;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
@@ -22,7 +23,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class ApplicationLogoutHandler implements HttpHandler {
 
-    private ApplicationLogoutLogic<Object, UndertowWebContext> applicationLogoutLogic = new DefaultApplicationLogoutLogic<>();
+    private ApplicationLogoutLogic<Object, UndertowWebContext> applicationLogoutLogic;
 
     private Config config;
 
@@ -30,17 +31,23 @@ public class ApplicationLogoutHandler implements HttpHandler {
 
     private String logoutUrlPattern;
 
+    public ApplicationLogoutHandler() {
+        applicationLogoutLogic = new DefaultApplicationLogoutLogic<>();
+        ((DefaultApplicationLogoutLogic<Object, UndertowWebContext>) applicationLogoutLogic).setProfileManagerFactory(UndertowProfileManager::new);
+    }
+
     public ApplicationLogoutHandler(final Config config) {
-        this(config, null);
+        this();
+        this.config = config;
     }
 
     public ApplicationLogoutHandler(final Config config, final String defaultUrl) {
-        this(config, defaultUrl, null);
+        this(config);
+        this.defaultUrl = defaultUrl;
     }
 
     public ApplicationLogoutHandler(final Config config, final String defaultUrl, final String logoutUrlPattern) {
-        this.config = config;
-        this.defaultUrl = defaultUrl;
+        this(config, defaultUrl);
         this.logoutUrlPattern = logoutUrlPattern;
     }
 
@@ -58,7 +65,7 @@ public class ApplicationLogoutHandler implements HttpHandler {
         return applicationLogoutLogic;
     }
 
-    public void setApplicationLogoutLogic(ApplicationLogoutLogic<Object, UndertowWebContext> applicationLogoutLogic) {
+    public void setApplicationLogoutLogic(final ApplicationLogoutLogic<Object, UndertowWebContext> applicationLogoutLogic) {
         this.applicationLogoutLogic = applicationLogoutLogic;
     }
 

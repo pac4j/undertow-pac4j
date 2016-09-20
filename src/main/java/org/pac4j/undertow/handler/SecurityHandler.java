@@ -8,6 +8,7 @@ import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.undertow.context.UndertowWebContext;
 import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
+import org.pac4j.undertow.profile.UndertowProfileManager;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
@@ -23,7 +24,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class SecurityHandler implements HttpHandler {
 
-    private SecurityLogic<Object, UndertowWebContext> securityLogic = new DefaultSecurityLogic<>();
+    private SecurityLogic<Object, UndertowWebContext> securityLogic;
 
     private HttpHandler toWrap;
 
@@ -38,6 +39,8 @@ public class SecurityHandler implements HttpHandler {
     private Boolean multiProfile;
 
     protected SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
+        securityLogic = new DefaultSecurityLogic<>();
+        ((DefaultSecurityLogic<Object, UndertowWebContext>) securityLogic).setProfileManagerFactory(UndertowProfileManager::new);
         this.toWrap = toWrap;
         this.config = config;
         this.clients = clients;
@@ -93,7 +96,7 @@ public class SecurityHandler implements HttpHandler {
         return securityLogic;
     }
 
-    protected void setSecurityLogic(SecurityLogic<Object, UndertowWebContext> securityLogic) {
+    protected void setSecurityLogic(final SecurityLogic<Object, UndertowWebContext> securityLogic) {
         this.securityLogic = securityLogic;
     }
 }

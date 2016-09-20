@@ -12,6 +12,7 @@ import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.DefaultCallbackLogic;
 import org.pac4j.undertow.context.UndertowWebContext;
 import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
+import org.pac4j.undertow.profile.UndertowProfileManager;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
@@ -27,7 +28,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class CallbackHandler implements HttpHandler {
 
-    private CallbackLogic<Object, UndertowWebContext> callbackLogic = new DefaultCallbackLogic<>();
+    private CallbackLogic<Object, UndertowWebContext> callbackLogic;
 
     private Config config;
 
@@ -36,6 +37,8 @@ public class CallbackHandler implements HttpHandler {
     private Boolean multiProfile;
 
     protected CallbackHandler(final Config config, final String defaultUrl, final Boolean multiProfile)  {
+        callbackLogic = new DefaultCallbackLogic<>();
+        ((DefaultCallbackLogic<Object, UndertowWebContext>) callbackLogic).setProfileManagerFactory(UndertowProfileManager::new);
         this.config = config;
         this.defaultUrl = defaultUrl;
         this.multiProfile = multiProfile;
@@ -78,7 +81,7 @@ public class CallbackHandler implements HttpHandler {
         return callbackLogic;
     }
 
-    protected void setCallbackLogic(CallbackLogic<Object, UndertowWebContext> callbackLogic) {
+    protected void setCallbackLogic(final CallbackLogic<Object, UndertowWebContext> callbackLogic) {
         this.callbackLogic = callbackLogic;
     }
 }
