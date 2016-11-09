@@ -129,7 +129,7 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public String getScheme() {
-        return exchange.getProtocol().toString();
+        return exchange.getRequestScheme();
     }
 
     @Override
@@ -217,6 +217,6 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public boolean isSecure() {
-        return "HTTPS".equalsIgnoreCase(exchange.getRequestScheme().toString());
+        return "HTTPS".equalsIgnoreCase(getScheme());
     }
 }
