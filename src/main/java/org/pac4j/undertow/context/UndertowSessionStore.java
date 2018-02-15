@@ -20,14 +20,16 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
         this.sessionConfig = exchange.getAttachment(SessionConfig.ATTACHMENT_KEY);
     }
 
-    protected Session getSession(final UndertowWebContext context) {
-        final HttpServerExchange exchange = context.getExchange();
-        Session session = this.sessionManager.getSession(exchange, this.sessionConfig);
-        if (session == null) {
-            exchange.getAttachment(SessionManager.ATTACHMENT_KEY).createSession(exchange, exchange.getAttachment(SessionConfig.ATTACHMENT_KEY));
-            session = this.sessionManager.getSession(exchange, this.sessionConfig);
+    protected Session getExistingSession(final UndertowWebContext context) {
+        return sessionManager.getSession(context.getExchange(), sessionConfig);
+    }
+
+    private Session getSession(final UndertowWebContext context) {
+        final Session session = getExistingSession(context);
+        if (session != null) {
+            return session;
         }
-        return session;
+        return sessionManager.createSession(context.getExchange(), sessionConfig);
     }
 
     @Override
@@ -37,17 +39,17 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
 
     @Override
     public Object get(final UndertowWebContext context, final String key) {
-        return getSession(context).getAttribute(key);
+        Session session = getExistingSession(context);
+        if (session == null) {
+            return null;
+        }
+        return session.getAttribute(key);
     }
 
     @Override
     public void set(final UndertowWebContext context, final String key, final Object value) {
         final Session session = getSession(context);
-        if (value == null) {
-            session.removeAttribute(key);
-        } else {
-            session.setAttribute(key, value);
-        }
+        session.setAttribute(key, value);
     }
 
     public SessionManager getSessionManager() {
@@ -56,5 +58,53 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
 
     public SessionConfig getSessionConfig() {
         return sessionConfig;
+    }
+
+    @Override
+    public boolean destroySession(final UndertowWebContext context) {
+        final Session session = getExistingSession(context);
+        if (session != null) {
+            session.invalidate(context.getExchange());
+        }
+        return true;
+    }
+
+    @Override
+    public Object getTrackableSession(final UndertowWebContext context) {
+        return getSession(context);
+    }
+
+    @Override
+    public SessionStore<UndertowWebContext> buildFromTrackableSession(final UndertowWebContext context, final Object trackableSession) {
+        return new UndertowSessionStore(context.getExchange()) {
+            @Override
+            protected Session getExistingSession(UndertowWebContext context) {
+                return (Session) trackableSession;
+            }
+
+        };
+    }
+
+    @Override
+    public boolean renewSession(final UndertowWebContext context) {
+        final HttpServerExchange exchange = context.getExchange();
+        final Session session = getExistingSession(context);
+        if (session == null) {
+            sessionManager.createSession(exchange, sessionConfig);
+            return true;
+        }
+        final String[] attributeNames = session.getAttributeNames().toArray(new String[0]);
+        final Object[] attributeValues = new Object[attributeNames.length];
+        for (int i = 0; i < attributeNames.length; i++) {
+            attributeValues[i] = session.getAttribute(attributeNames[i]);
+        }
+
+        session.invalidate(exchange);
+
+        final Session newSession = sessionManager.createSession(exchange, sessionConfig);
+        for (int i = 0; i < attributeNames.length; i++) {
+            newSession.setAttribute(attributeNames[i], attributeValues[i]);
+        }
+        return true;
     }
 }

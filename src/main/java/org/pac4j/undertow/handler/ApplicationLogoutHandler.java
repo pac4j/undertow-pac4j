@@ -4,8 +4,8 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 
 import org.pac4j.core.config.Config;
-import org.pac4j.core.engine.ApplicationLogoutLogic;
-import org.pac4j.core.engine.DefaultApplicationLogoutLogic;
+import org.pac4j.core.engine.DefaultLogoutLogic;
+import org.pac4j.core.engine.LogoutLogic;
 import org.pac4j.undertow.context.UndertowWebContext;
 import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
 import org.pac4j.undertow.profile.UndertowProfileManager;
@@ -13,27 +13,35 @@ import org.pac4j.undertow.profile.UndertowProfileManager;
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
- * <p>This handler handles the application logout process, based on the {@link #applicationLogoutLogic}.</p>
+ * <p>This handler handles the application logout process, based on the {@link #logoutLogic}.</p>
  *
  * <p>The configuration can be provided via the following parameters: <code>config</code> (the account configuration),
- * <code>defaultUrl</code> (default logourl url) and <code>logoutUrlPattern</code> (pattern that logout urls must match).</p>
+ * <code>defaultUrl</code> (default logourl url), <code>logoutUrlPattern</code> (pattern that logout urls must match),
+ * <code>localLogout</code> (remove pac4j profiles from web session), <code>destroySession</code> (destroy web session)
+ * and <code>centralLogout</code> (redirect user to identity provider for central logout).</p>
  *
  * @author Jerome Leleu
  * @since 1.1.0
  */
 public class ApplicationLogoutHandler implements HttpHandler {
-
-    private ApplicationLogoutLogic<Object, UndertowWebContext> applicationLogoutLogic;
+    
+    private LogoutLogic<Object, UndertowWebContext> logoutLogic;
 
     private Config config;
 
     private String defaultUrl;
 
     private String logoutUrlPattern;
+    
+    private Boolean localLogout;
+
+    private Boolean destroySession;
+
+    private Boolean centralLogout;
 
     public ApplicationLogoutHandler() {
-        applicationLogoutLogic = new DefaultApplicationLogoutLogic<>();
-        ((DefaultApplicationLogoutLogic<Object, UndertowWebContext>) applicationLogoutLogic).setProfileManagerFactory(UndertowProfileManager::new);
+        logoutLogic = new DefaultLogoutLogic<>();
+        ((DefaultLogoutLogic<Object, UndertowWebContext>) logoutLogic).setProfileManagerFactory(UndertowProfileManager::new);
     }
 
     public ApplicationLogoutHandler(final Config config) {
@@ -54,19 +62,20 @@ public class ApplicationLogoutHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        assertNotNull("applicationLogoutLogic", applicationLogoutLogic);
+        assertNotNull("applicationLogoutLogic", logoutLogic);
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
-        applicationLogoutLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE, this.defaultUrl, this.logoutUrlPattern);
+        logoutLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE,
+                defaultUrl, logoutUrlPattern, localLogout, destroySession, centralLogout);
     }
 
-    public ApplicationLogoutLogic<Object, UndertowWebContext> getApplicationLogoutLogic() {
-        return applicationLogoutLogic;
+    public LogoutLogic<Object, UndertowWebContext> getLogoutLogic() {
+        return logoutLogic;
     }
 
-    public void setApplicationLogoutLogic(final ApplicationLogoutLogic<Object, UndertowWebContext> applicationLogoutLogic) {
-        this.applicationLogoutLogic = applicationLogoutLogic;
+    public void setLogoutLogic(final LogoutLogic<Object, UndertowWebContext> logoutLogic) {
+        this.logoutLogic = logoutLogic;
     }
 
     public String getDefaultUrl() {
@@ -83,5 +92,29 @@ public class ApplicationLogoutHandler implements HttpHandler {
 
     public void setLogoutUrlPattern(final String logoutUrlPattern) {
         this.logoutUrlPattern = logoutUrlPattern;
+    }
+
+    public Boolean getLocalLogout() {
+        return localLogout;
+    }
+
+    public void setLocalLogout(final Boolean localLogout) {
+        this.localLogout = localLogout;
+    }
+
+    public Boolean getDestroySession() {
+        return destroySession;
+    }
+
+    public void setDestroySession(final Boolean destroySession) {
+        this.destroySession = destroySession;
+    }
+
+    public Boolean getCentralLogout() {
+        return centralLogout;
+    }
+
+    public void setCentralLogout(final Boolean centralLogout) {
+        this.centralLogout = centralLogout;
     }
 }

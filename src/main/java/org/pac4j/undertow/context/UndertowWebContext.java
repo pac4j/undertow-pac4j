@@ -48,8 +48,15 @@ public class UndertowWebContext implements WebContext {
         return exchange;
     }
 
+    @Override
     public SessionStore<UndertowWebContext> getSessionStore() {
         return sessionStore;
+    }
+    
+    @Override
+    @Deprecated
+    public void setSessionStore(SessionStore sessionStore) {
+        throw new UnsupportedOperationException("not supported");
     }
 
     @Override
@@ -81,42 +88,32 @@ public class UndertowWebContext implements WebContext {
         }
         return map;
     }
-
+    
     @Override
     public String getRequestHeader(final String name) {
         return exchange.getRequestHeaders().get(name, 0);
     }
-
-    @Override
-    public void setSessionAttribute(final String name, final Object value) {
-        sessionStore.set(this, name, value);
-    }
-
-    @Override
-    public Object getSessionAttribute(final String name) {
-        return sessionStore.get(this, name);
-    }
-
+    
     @Override
     public String getRequestMethod() {
         return exchange.getRequestMethod().toString();
     }
-
+    
     @Override
     public void writeResponseContent(final String content) {
         exchange.getResponseSender().send(content);
     }
-
+    
     @Override
     public void setResponseStatus(final int code) {
         exchange.setResponseCode(code);
     }
-
+    
     @Override
     public void setResponseHeader(final String name, final String value) {
         exchange.getResponseHeaders().put(HttpString.tryFromString(name), value);
     }
-
+    
     @Override
     public String getServerName() {
         return exchange.getHostName();
@@ -140,12 +137,12 @@ public class UndertowWebContext implements WebContext {
         }
         return full;
     }
-
+    
     @Override
     public String getRemoteAddr() {
         return exchange.getSourceAddress().getAddress().getHostAddress();
     }
-
+    
     @Override
     public void addResponseCookie(final Cookie cookie) {
         final CookieImpl newCookie = new CookieImpl(cookie.getName(), cookie.getValue());
@@ -157,7 +154,7 @@ public class UndertowWebContext implements WebContext {
         newCookie.setHttpOnly(cookie.isHttpOnly());
         exchange.setResponseCookie(newCookie);
     }
-
+    
     @Override
     public void setRequestAttribute(final String name, final Object value) {
         String result = null;
@@ -172,12 +169,12 @@ public class UndertowWebContext implements WebContext {
     public String getPath() {
         return exchange.getRequestPath();
     }
-
+    
     @Override
     public void setResponseContentType(final String content) {
         exchange.getResponseHeaders().add(HttpString.tryFromString(HttpConstants.CONTENT_TYPE_HEADER), content);
     }
-
+    
     @Override
     public Collection<Cookie> getRequestCookies() {
         Map<String, io.undertow.server.handlers.Cookie> cookiesMap = exchange.getRequestCookies();
@@ -195,12 +192,7 @@ public class UndertowWebContext implements WebContext {
         }
         return cookies;
     }
-
-    @Override
-    public Object getSessionIdentifier() {
-        return sessionStore.getOrCreateSessionId(this);
-    }
-
+    
     @Override
     public Object getRequestAttribute(final String name) {
         Object value = null;
@@ -214,7 +206,7 @@ public class UndertowWebContext implements WebContext {
         }
         return value;
     }
-
+    
     @Override
     public boolean isSecure() {
         return "HTTPS".equalsIgnoreCase(getScheme());
