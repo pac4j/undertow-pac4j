@@ -4,6 +4,7 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.CookieImpl;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
 import java.io.Serializable;
@@ -11,7 +12,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import org.pac4j.core.context.Cookie;
-import org.pac4j.core.context.HttpConstants;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.util.CommonHelper;
@@ -106,7 +106,7 @@ public class UndertowWebContext implements WebContext {
     
     @Override
     public void setResponseStatus(final int code) {
-        exchange.setResponseCode(code);
+        exchange.setStatusCode(code);
     }
     
     @Override
@@ -172,15 +172,14 @@ public class UndertowWebContext implements WebContext {
     
     @Override
     public void setResponseContentType(final String content) {
-        exchange.getResponseHeaders().add(HttpString.tryFromString(HttpConstants.CONTENT_TYPE_HEADER), content);
+        exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, content);
     }
     
     @Override
     public Collection<Cookie> getRequestCookies() {
-        Map<String, io.undertow.server.handlers.Cookie> cookiesMap = exchange.getRequestCookies();
-        final List<Cookie> cookies = new ArrayList<>();
-        for (final Entry<String, io.undertow.server.handlers.Cookie> entry : cookiesMap.entrySet()) {
-            final io.undertow.server.handlers.Cookie uCookie = entry.getValue();
+        final Collection<io.undertow.server.handlers.Cookie> uCookies = exchange.getRequestCookies().values();
+        final List<Cookie> cookies = new ArrayList<>(uCookies.size());
+        for (final io.undertow.server.handlers.Cookie uCookie : uCookies) {
             final Cookie cookie = new Cookie(uCookie.getName(), uCookie.getValue());
             cookie.setComment(uCookie.getComment());
             cookie.setDomain(uCookie.getDomain());
@@ -209,6 +208,6 @@ public class UndertowWebContext implements WebContext {
     
     @Override
     public boolean isSecure() {
-        return "HTTPS".equalsIgnoreCase(getScheme());
+        return exchange.isSecure();
     }
 }
