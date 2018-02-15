@@ -52,7 +52,7 @@ public class UndertowWebContext implements WebContext {
     public SessionStore<UndertowWebContext> getSessionStore() {
         return sessionStore;
     }
-    
+
     @Override
     @Deprecated
     public void setSessionStore(SessionStore sessionStore) {
@@ -88,32 +88,32 @@ public class UndertowWebContext implements WebContext {
         }
         return map;
     }
-    
+
     @Override
     public String getRequestHeader(final String name) {
         return exchange.getRequestHeaders().get(name, 0);
     }
-    
+
     @Override
     public String getRequestMethod() {
         return exchange.getRequestMethod().toString();
     }
-    
+
     @Override
     public void writeResponseContent(final String content) {
         exchange.getResponseSender().send(content);
     }
-    
+
     @Override
     public void setResponseStatus(final int code) {
         exchange.setStatusCode(code);
     }
-    
+
     @Override
     public void setResponseHeader(final String name, final String value) {
         exchange.getResponseHeaders().put(HttpString.tryFromString(name), value);
     }
-    
+
     @Override
     public String getServerName() {
         return exchange.getHostName();
@@ -137,12 +137,12 @@ public class UndertowWebContext implements WebContext {
         }
         return full;
     }
-    
+
     @Override
     public String getRemoteAddr() {
         return exchange.getSourceAddress().getAddress().getHostAddress();
     }
-    
+
     @Override
     public void addResponseCookie(final Cookie cookie) {
         final CookieImpl newCookie = new CookieImpl(cookie.getName(), cookie.getValue());
@@ -154,7 +154,7 @@ public class UndertowWebContext implements WebContext {
         newCookie.setHttpOnly(cookie.isHttpOnly());
         exchange.setResponseCookie(newCookie);
     }
-    
+
     @Override
     public void setRequestAttribute(final String name, final Object value) {
         String result = null;
@@ -169,12 +169,12 @@ public class UndertowWebContext implements WebContext {
     public String getPath() {
         return exchange.getRequestPath();
     }
-    
+
     @Override
     public void setResponseContentType(final String content) {
         exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, content);
     }
-    
+
     @Override
     public Collection<Cookie> getRequestCookies() {
         final Collection<io.undertow.server.handlers.Cookie> uCookies = exchange.getRequestCookies().values();
@@ -191,7 +191,7 @@ public class UndertowWebContext implements WebContext {
         }
         return cookies;
     }
-    
+
     @Override
     public Object getRequestAttribute(final String name) {
         Object value = null;
@@ -205,7 +205,7 @@ public class UndertowWebContext implements WebContext {
         }
         return value;
     }
-    
+
     @Override
     public boolean isSecure() {
         return exchange.isSecure();

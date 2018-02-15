@@ -62,7 +62,7 @@ public class ApplicationLogoutHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        assertNotNull("applicationLogoutLogic", logoutLogic);
+        assertNotNull("logoutLogic", logoutLogic);
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
