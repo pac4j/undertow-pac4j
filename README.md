@@ -65,7 +65,8 @@ public class DemoConfigFactory implements ConfigFactory {
         final FormClient formClient = new FormClient("http://localhost:8080/loginForm.html", new SimpleTestUsernamePasswordAuthenticator());
         final IndirectBasicAuthClient indirectBasicAuthClient = new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
 
-        final CasClient casClient = new CasClient("https://casserverpac4j.herokuapp.com/login");
+        final CasConfiguration casConfiguration = new CasConfiguration("https://casserverpac4j.herokuapp.com/login");
+        final CasClient casClient = new CasClient(casConfiguration);
 
         ParameterClient parameterClient = new ParameterClient("token", new JwtAuthenticator(DemoServer.JWT_SALT));
         parameterClient.setSupportGetRequest(true);
