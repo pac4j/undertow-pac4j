@@ -46,11 +46,12 @@ It must be built via a configuration factory (`org.pac4j.core.config.ConfigFacto
 public class DemoConfigFactory implements ConfigFactory {
 
     public Config build() {
-        final OidcClient oidcClient = new OidcClient();
-        oidcClient.setClientID(clientId);
-        oidcClient.setSecret(secret);
-        oidcClient.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration");
-        oidcClient.setAuthorizationGenerator(profile -> profile.addRole("ROLE_ADMIN"));
+        final OidcConfiguration oidcConfiguration = new OidcConfiguration();
+        oidcConfiguration.setClientId(clientId);
+        oidcConfiguration.setSecret(secret);
+        oidcConfiguration.setDiscoveryURI("https://accounts.google.com/.well-known/openid-configuration");
+        final OidcClient<OidcProfile> oidcClient = new OidcClient<>(oidcConfiguration);
+        oidcClient.setAuthorizationGenerator((context, profile) -> {profile.addRole("ROLE_ADMIN"); return profile;});
 
         final SAML2ClientConfiguration cfg = new SAML2ClientConfiguration("resource:samlKeystore.jks", "pac4j-demo-passwd", "pac4j-demo-passwd", "resource:metadata-okta.xml");
         cfg.setMaximumAuthenticationLifetime(3600);
@@ -64,7 +65,8 @@ public class DemoConfigFactory implements ConfigFactory {
         final FormClient formClient = new FormClient("http://localhost:8080/loginForm.html", new SimpleTestUsernamePasswordAuthenticator());
         final IndirectBasicAuthClient indirectBasicAuthClient = new IndirectBasicAuthClient(new SimpleTestUsernamePasswordAuthenticator());
 
-        final CasClient casClient = new CasClient("https://casserverpac4j.herokuapp.com/login");
+        final CasConfiguration casConfiguration = new CasConfiguration("https://casserverpac4j.herokuapp.com/login");
+        final CasClient casClient = new CasClient(casConfiguration);
 
         ParameterClient parameterClient = new ParameterClient("token", new JwtAuthenticator(DemoServer.JWT_SALT));
         parameterClient.setSupportGetRequest(true);
@@ -208,6 +210,12 @@ The following parameters are available:
 
 2) `logoutUrlPattern` (optional): the logout url pattern that the `url` parameter must match (only relative urls are allowed by default).
 
+3) `localLogout` (optional): remove pac4j profiles from web session (default: true)
+
+4) `destroySession` (optional): destroy web session on logout / tell browser to delete session cookie (default: false)
+
+5) `centralLogout` (optional): redirect user to identity provider for central logout (default: false)
+
 Example:
 
 ```java
@@ -216,6 +224,14 @@ path.addExactPath("/logout", new ApplicationLogoutHandler(config, "/?defaulturla
 
 
 ## Migration guide
+
+### 1.2 -> 2.0
+
+Version 2 of pac4j-core 2 is now required.
+
+The methods `getApplicationLogoutLogic` and `setApplicationLogoutLogic` of `ApplicationLogoutHandler` are renamed to `getLogoutLogic` and `setLogoutLogic` to better reflect the new type introduced in pac4j 2.
+
+`ApplicationLogoutHandler` gained getters and setter for the new settings `localLogout` (remove pac4j profiles from web session), `destroySession` (destroy web session on logout) and `centralLogout` (redirect user to identity provider for central logout).
 
 ### 1.1 -> 1.2
 
