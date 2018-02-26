@@ -3,7 +3,7 @@
 </p>
 
 The `undertow-pac4j` project is an **easy and powerful security library for Undertow** web applications which supports authentication and authorization, but also application logout and advanced features like CSRF protection.
-It's based on Java 8, Undertow 1.3 and on the **[pac4j security engine](https://github.com/pac4j/pac4j)**. It's available under the Apache 2 license.
+It's based on Java 8, Undertow 1.4 and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v2**. It's available under the Apache 2 license.
 
 [**Main concepts and components:**](http://www.pac4j.org/docs/main-concepts-and-components.html)
 
@@ -29,8 +29,8 @@ Just follow these easy steps to secure your Undertow web application:
 
 You need to add a dependency on:
  
-- the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **1.2.3**)
-- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **1.9.4**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
+- the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **2.0.0-SNAPSHOT**)
+- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **2.2.1**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
 
 All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
@@ -227,11 +227,9 @@ path.addExactPath("/logout", new ApplicationLogoutHandler(config, "/?defaulturla
 
 ### 1.2 -> 2.0
 
-Version 2 of pac4j-core 2 is now required.
+Version 2.x of pac4j is now required.
 
-The methods `getApplicationLogoutLogic` and `setApplicationLogoutLogic` of `ApplicationLogoutHandler` are renamed to `getLogoutLogic` and `setLogoutLogic` to better reflect the new type introduced in pac4j 2.
-
-`ApplicationLogoutHandler` gained getters and setter for the new settings `localLogout` (remove pac4j profiles from web session), `destroySession` (destroy web session on logout) and `centralLogout` (redirect user to identity provider for central logout).
+`ApplicationLogoutHandler` is renamed `LogoutHandler` and gained getters and setters for the new settings `localLogout` (remove pac4j profiles from web session), `destroySession` (destroy web session on logout) and `centralLogout` (redirect user to identity provider for central logout).
 
 ### 1.1 -> 1.2
 
@@ -255,7 +253,7 @@ The demo webapp: [undertow-pac4j-demo](https://github.com/pac4j/undertow-pac4j-d
 
 ## Release notes
 
-See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes). Learn more by browsing the [undertow-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/undertow-pac4j/1.2.3) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/1.9.4/index.html).
+See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes). Learn more by browsing the [undertow-pac4j Javadoc](http://www.javadoc.io/doc/org.pac4j/undertow-pac4j/2.0.0) and the [pac4j Javadoc](http://www.pac4j.org/apidocs/pac4j/2.2.1/index.html).
 
 
 ## Need help?

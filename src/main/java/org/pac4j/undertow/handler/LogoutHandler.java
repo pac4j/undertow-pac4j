@@ -23,7 +23,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  * @author Jerome Leleu
  * @since 1.1.0
  */
-public class ApplicationLogoutHandler implements HttpHandler {
+public class LogoutHandler implements HttpHandler {
     
     private LogoutLogic<Object, UndertowWebContext> logoutLogic;
 
@@ -39,22 +39,22 @@ public class ApplicationLogoutHandler implements HttpHandler {
 
     private Boolean centralLogout;
 
-    public ApplicationLogoutHandler() {
+    public LogoutHandler() {
         logoutLogic = new DefaultLogoutLogic<>();
         ((DefaultLogoutLogic<Object, UndertowWebContext>) logoutLogic).setProfileManagerFactory(UndertowProfileManager::new);
     }
 
-    public ApplicationLogoutHandler(final Config config) {
+    public LogoutHandler(final Config config) {
         this();
         this.config = config;
     }
 
-    public ApplicationLogoutHandler(final Config config, final String defaultUrl) {
+    public LogoutHandler(final Config config, final String defaultUrl) {
         this(config);
         this.defaultUrl = defaultUrl;
     }
 
-    public ApplicationLogoutHandler(final Config config, final String defaultUrl, final String logoutUrlPattern) {
+    public LogoutHandler(final Config config, final String defaultUrl, final String logoutUrlPattern) {
         this(config, defaultUrl);
         this.logoutUrlPattern = logoutUrlPattern;
     }
