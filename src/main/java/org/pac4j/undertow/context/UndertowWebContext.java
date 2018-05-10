@@ -149,7 +149,7 @@ public class UndertowWebContext implements WebContext {
         newCookie.setComment(cookie.getComment());
         newCookie.setDomain(cookie.getDomain());
         newCookie.setPath(cookie.getPath());
-        newCookie.setMaxAge(cookie.getMaxAge());
+        newCookie.setMaxAge(cookie.getMaxAge() < 0 ? null : cookie.getMaxAge());
         newCookie.setSecure(cookie.isSecure());
         newCookie.setHttpOnly(cookie.isHttpOnly());
         exchange.setResponseCookie(newCookie);
@@ -184,7 +184,7 @@ public class UndertowWebContext implements WebContext {
             cookie.setComment(uCookie.getComment());
             cookie.setDomain(uCookie.getDomain());
             cookie.setPath(uCookie.getPath());
-            cookie.setMaxAge(uCookie.getMaxAge());
+            cookie.setMaxAge(uCookie.getMaxAge() == null ? -1 : uCookie.getMaxAge());
             cookie.setSecure(uCookie.isSecure());
             cookie.setHttpOnly(uCookie.isHttpOnly());
             cookies.add(cookie);
