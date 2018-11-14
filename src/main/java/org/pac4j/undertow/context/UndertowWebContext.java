@@ -54,12 +54,6 @@ public class UndertowWebContext implements WebContext {
     }
 
     @Override
-    @Deprecated
-    public void setSessionStore(SessionStore sessionStore) {
-        throw new UnsupportedOperationException("not supported");
-    }
-
-    @Override
     public String getRequestParameter(final String name) {
         Deque<String> param = exchange.getQueryParameters().get(name);
         if (param != null) {

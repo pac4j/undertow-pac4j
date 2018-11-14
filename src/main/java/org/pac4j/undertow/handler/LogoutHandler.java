@@ -15,10 +15,15 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
 /**
  * <p>This handler handles the application logout process, based on the {@link #logoutLogic}.</p>
  *
- * <p>The configuration can be provided via the following parameters: <code>config</code> (the account configuration),
- * <code>defaultUrl</code> (default logourl url), <code>logoutUrlPattern</code> (pattern that logout urls must match),
- * <code>localLogout</code> (remove pac4j profiles from web session), <code>destroySession</code> (destroy web session)
- * and <code>centralLogout</code> (redirect user to identity provider for central logout).</p>
+ * <p>The configuration can be provided via the following parameters:</p>
+ * <ul>
+ *     <li><code>config</code> (the security configuration itself)</li>
+ *     <li><code>defaultUrl</code> (default logourl url)</li>
+ *     <li><code>logoutUrlPattern</code> (pattern that logout urls must match)</li>
+ *     <li><code>localLogout</code> (whether the application logout must be performed)</li>
+ *     <li><code>destroySession</code> (whether we must destroy the web session during the local logout)</li>
+ *     <li><code>centralLogout</code> (whether the centralLogout must be performed)</li>
+ * </ul>
  *
  * @author Jerome Leleu
  * @since 1.1.0

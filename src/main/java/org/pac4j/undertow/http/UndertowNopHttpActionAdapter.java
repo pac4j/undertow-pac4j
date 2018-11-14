@@ -1,6 +1,6 @@
 package org.pac4j.undertow.http;
 
-import org.pac4j.core.http.HttpActionAdapter;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.undertow.context.UndertowWebContext;
 
 /**

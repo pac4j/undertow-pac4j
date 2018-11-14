@@ -15,9 +15,14 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
 /**
  * <p>This handler protects an url, based on the {@link #securityLogic}.</p>
  *
- * <p>The configuration can be provided via the following parameters: <code>config</code> (account configuration),
- * <code>clients</code> (list of clients for authentication), <code>authorizers</code> (list of authorizers),
- * <code>matchers</code> (list of matchers) and <code>multiProfile</code> (whether multiple profiles should be kept).</p>
+ * <p>The configuration can be provided via constructors for the following options:</p>
+ * <ul>
+ *     <li><code>config</code> (the security configuration itself)</li>
+ *     <li><code>clients</code> (list of clients for authentication)</li>
+ *     <li><code>authorizers</code> (list of authorizers)</li>
+ *     <li><code>matchers</code> (list of matchers)</li>
+ *     <li><code>multiProfile</code>  (whether multiple profiles should be kept).</li>
+ * </ul>
  *
  * @author Jerome Leleu
  * @since 1.2.0
@@ -84,7 +89,7 @@ public class SecurityHandler implements HttpHandler {
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
-        securityLogic.perform(context, this.config, (ctx, parameters) -> {
+        securityLogic.perform(context, this.config, (ctx, profiles, parameters) -> {
 
             toWrap.handleRequest(exchange);
             return null;
@@ -98,5 +103,37 @@ public class SecurityHandler implements HttpHandler {
 
     protected void setSecurityLogic(final SecurityLogic<Object, UndertowWebContext> securityLogic) {
         this.securityLogic = securityLogic;
+    }
+
+    public String getClients() {
+        return clients;
+    }
+
+    public void setClients(final String clients) {
+        this.clients = clients;
+    }
+
+    public String getAuthorizers() {
+        return authorizers;
+    }
+
+    public void setAuthorizers(final String authorizers) {
+        this.authorizers = authorizers;
+    }
+
+    public String getMatchers() {
+        return matchers;
+    }
+
+    public void setMatchers(final String matchers) {
+        this.matchers = matchers;
+    }
+
+    public Boolean getMultiProfile() {
+        return multiProfile;
+    }
+
+    public void setMultiProfile(final Boolean multiProfile) {
+        this.multiProfile = multiProfile;
     }
 }
