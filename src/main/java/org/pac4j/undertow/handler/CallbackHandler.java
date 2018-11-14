@@ -19,8 +19,15 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
 /**
  * <p>This handler finishes the login process for an indirect client, based on the {@link #callbackLogic}.</p>
  *
- * <p>The configuration can be provided via the following parameters: <code>config</code> (account configuration),
- * <code>defaultUrl</code> (default url after login if none was requested) and <code>multiProfile</code> (whether multiple profiles should be kept).</p>
+ * <p>The configuration can be provided via setters and constructors for the following options:</p>
+ * <ul>
+ *     <li><code>config</code> (the security configuration itself)</li>
+ *     <li><code>defaultUrl</code> (default url after login if none was requested)</li>
+ *     <li><code>saveInSession</code> (whether the profile should be saved into the session)</li>
+ *     <li><code>multiProfile</code> (whether multiple profiles should be kept)</li>
+ *     <li><code>renewSession</code> (whether the session must be renewed after login)</li>
+ *     <li><code>defaultClient</code> (the default client if none is provided on the URL)</li>
+ * </ul>
  *
  * @author Jerome Leleu
  * @author Michaël Remond
@@ -34,7 +41,13 @@ public class CallbackHandler implements HttpHandler {
 
     private String defaultUrl;
 
+    private Boolean saveInSession;
+
     private Boolean multiProfile;
+
+    private Boolean renewSession;
+
+    private String defaultClient;
 
     protected CallbackHandler(final Config config, final String defaultUrl, final Boolean multiProfile)  {
         callbackLogic = new DefaultCallbackLogic<>();
@@ -74,7 +87,8 @@ public class CallbackHandler implements HttpHandler {
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
-        callbackLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE, this.defaultUrl, this.multiProfile, false);
+        callbackLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE, this.defaultUrl,
+                this.saveInSession, this.multiProfile, this.renewSession, this.defaultClient);
     }
 
     protected CallbackLogic<Object, UndertowWebContext> getCallbackLogic() {
@@ -83,5 +97,45 @@ public class CallbackHandler implements HttpHandler {
 
     protected void setCallbackLogic(final CallbackLogic<Object, UndertowWebContext> callbackLogic) {
         this.callbackLogic = callbackLogic;
+    }
+
+    public String getDefaultUrl() {
+        return defaultUrl;
+    }
+
+    public void setDefaultUrl(final String defaultUrl) {
+        this.defaultUrl = defaultUrl;
+    }
+
+    public Boolean getSaveInSession() {
+        return saveInSession;
+    }
+
+    public void setSaveInSession(final Boolean saveInSession) {
+        this.saveInSession = saveInSession;
+    }
+
+    public Boolean getMultiProfile() {
+        return multiProfile;
+    }
+
+    public void setMultiProfile(final Boolean multiProfile) {
+        this.multiProfile = multiProfile;
+    }
+
+    public Boolean getRenewSession() {
+        return renewSession;
+    }
+
+    public void setRenewSession(final Boolean renewSession) {
+        this.renewSession = renewSession;
+    }
+
+    public String getDefaultClient() {
+        return defaultClient;
+    }
+
+    public void setDefaultClient(final String defaultClient) {
+        this.defaultClient = defaultClient;
     }
 }

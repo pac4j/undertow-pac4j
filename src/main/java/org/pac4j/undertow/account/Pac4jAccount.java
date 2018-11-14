@@ -18,16 +18,15 @@ import java.util.Set;
  */
 public class Pac4jAccount implements Account {
 
-    private final LinkedHashMap<String, CommonProfile> profiles;
+    private final List<CommonProfile> profiles;
 
     private Set<String> roles;
     private Principal principal;
 
     public Pac4jAccount(final LinkedHashMap<String, CommonProfile> profiles) {
-        this.profiles = profiles;
         this.roles = new HashSet<>();
-        final List<CommonProfile> listProfiles = ProfileHelper.flatIntoAProfileList(this.profiles);
-        for (final CommonProfile profile : listProfiles) {
+        this.profiles = ProfileHelper.flatIntoAProfileList(profiles);
+        for (final CommonProfile profile : this.profiles) {
             final Set<String> roles = profile.getRoles();
             for (final String role : roles) {
                 this.roles.add(role);
@@ -62,6 +61,6 @@ public class Pac4jAccount implements Account {
      * @return the list of profiles
      */
     public List<CommonProfile> getProfiles() {
-        return ProfileHelper.flatIntoAProfileList(this.profiles);
+        return this.profiles;
     }
 }

@@ -3,7 +3,7 @@
 </p>
 
 The `undertow-pac4j` project is an **easy and powerful security library for Undertow** web applications which supports authentication and authorization, but also application logout and advanced features like CSRF protection.
-It's based on Java 8, Undertow 1.4 and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v2**. It's available under the Apache 2 license.
+It's based on Java 8, Undertow 1.4 and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v3**. It's available under the Apache 2 license.
 
 [**Main concepts and components:**](http://www.pac4j.org/docs/main-concepts-and-components.html)
 
@@ -19,7 +19,7 @@ It's based on Java 8, Undertow 1.4 and on the **[pac4j security engine](https://
 
 4) The `CallbackHandler` finishes the login process for an indirect client
 
-5) The `ApplicationLogoutHandler` logs out the user from the application.
+5) The `LogoutHandler` logs out the user from the application.
 
 ---
 
@@ -29,8 +29,8 @@ Just follow these easy steps to secure your Undertow web application:
 
 You need to add a dependency on:
  
-- the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **2.0.1**)
-- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **2.2.1**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
+- the `undertow-pac4j` library (<em>groupId</em>: **org.pac4j**, *version*: **3.0.0-SNAPSHOT**)
+- the appropriate `pac4j` [submodules](http://www.pac4j.org/docs/clients.html) (<em>groupId</em>: **org.pac4j**, *version*: **3.3.0**): `pac4j-oauth` for OAuth support (Facebook, Twitter...), `pac4j-cas` for CAS support, `pac4j-ldap` for LDAP authentication, etc.
 
 All released artifacts are available in the [Maven central repository](http://search.maven.org/#search%7Cga%7C1%7Cpac4j).
 
@@ -196,7 +196,7 @@ FacebookProfile facebookProfile = (FacebookProfile) commonProfile;
 
 ---
 
-### 6) Logout (`ApplicationLogoutHandler`)
+### 6) Logout (`LogoutHandler`)
 
 You can log out the current authenticated user using the `ApplicationLogoutHandler`. It has the following behaviour:
 
@@ -227,6 +227,10 @@ path.addExactPath("/logout", new ApplicationLogoutHandler(config, "/?defaulturla
 
 
 ## Migration guide
+
+### 2.0 -> 3.0
+
+Version 3.x of pac4j is now required.
 
 ### 1.2 -> 2.0
 
@@ -269,7 +273,7 @@ If you have any question, please use the following mailing lists:
 
 ## Development
 
-The version 2.0.2-SNAPSHOT is under development.
+The version 3.0.0-SNAPSHOT is under development.
 
 Maven artifacts are built via Travis: [![Build Status](https://travis-ci.org/pac4j/undertow-pac4j.png?branch=master)](https://travis-ci.org/pac4j/undertow-pac4j) and available in the [Sonatype snapshots repository](https://oss.sonatype.org/content/repositories/snapshots/org/pac4j). This repository must be added in the Maven *pom.xml* file for example:
 
