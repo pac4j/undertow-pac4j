@@ -26,7 +26,9 @@ import org.pac4j.core.util.JavaSerializationHelper;
  */
 public class UndertowWebContext implements WebContext {
 
-    private final static JavaSerializationHelper JAVA_SERIALIZATION_HELPER = new JavaSerializationHelper();
+    private static final String SPECIFIC_PAC4J_DATA = "_specificPac4jData_";
+
+    private static JavaSerializationHelper JAVA_SERIALIZATION_HELPER = new JavaSerializationHelper();
 
     private final HttpServerExchange exchange;
     private final SessionStore<UndertowWebContext> sessionStore;
@@ -155,8 +157,7 @@ public class UndertowWebContext implements WebContext {
         if (value != null) {
             result = JAVA_SERIALIZATION_HELPER.serializeToBase64((Serializable) value);
         }
-        // TODO: not sure if it can be used as request attribute
-        exchange.addPathParam(name, result);
+        exchange.addPathParam(SPECIFIC_PAC4J_DATA + name, result);
     }
 
     @Override
@@ -189,8 +190,7 @@ public class UndertowWebContext implements WebContext {
     @Override
     public Object getRequestAttribute(final String name) {
         Object value = null;
-        // TODO: not sure if it can be used as request attribute
-        Deque<String> v = exchange.getPathParameters().get(name);
+        Deque<String> v = exchange.getPathParameters().get(SPECIFIC_PAC4J_DATA + name);
         if (v != null) {
             final String serializedValue = v.getFirst();
             if (serializedValue != null) {
@@ -203,5 +203,14 @@ public class UndertowWebContext implements WebContext {
     @Override
     public boolean isSecure() {
         return exchange.isSecure();
+    }
+
+    public static JavaSerializationHelper getJavaSerializationHelper() {
+        return JAVA_SERIALIZATION_HELPER;
+    }
+
+    public static void setJavaSerializationHelper(final JavaSerializationHelper javaSerializationHelper) {
+        CommonHelper.assertNotNull("javaSerializationHelper", javaSerializationHelper);
+        JAVA_SERIALIZATION_HELPER = javaSerializationHelper;
     }
 }
