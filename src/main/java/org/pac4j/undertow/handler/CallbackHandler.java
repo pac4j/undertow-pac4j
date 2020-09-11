@@ -10,24 +10,15 @@ import io.undertow.server.handlers.form.FormParserFactory;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.DefaultCallbackLogic;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.core.util.FindBest;
 import org.pac4j.undertow.context.UndertowWebContext;
-import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
-import org.pac4j.undertow.profile.UndertowProfileManager;
+import org.pac4j.undertow.http.UndertowHttpActionAdapter;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
- * <p>This handler finishes the login process for an indirect client, based on the {@link #callbackLogic}.</p>
- *
- * <p>The configuration can be provided via setters and constructors for the following options:</p>
- * <ul>
- *     <li><code>config</code> (the security configuration itself)</li>
- *     <li><code>defaultUrl</code> (default url after login if none was requested)</li>
- *     <li><code>saveInSession</code> (whether the profile should be saved into the session)</li>
- *     <li><code>multiProfile</code> (whether multiple profiles should be kept)</li>
- *     <li><code>renewSession</code> (whether the session must be renewed after login)</li>
- *     <li><code>defaultClient</code> (the default client if none is provided on the URL)</li>
- * </ul>
+ * <p>This filter finishes the login process for an indirect client.</p>
  *
  * @author Jerome Leleu
  * @author Michaël Remond
@@ -50,8 +41,6 @@ public class CallbackHandler implements HttpHandler {
     private String defaultClient;
 
     protected CallbackHandler(final Config config, final String defaultUrl, final Boolean multiProfile)  {
-        callbackLogic = new DefaultCallbackLogic<>();
-        ((DefaultCallbackLogic<Object, UndertowWebContext>) callbackLogic).setProfileManagerFactory(UndertowProfileManager::new);
         this.config = config;
         this.defaultUrl = defaultUrl;
         this.multiProfile = multiProfile;
@@ -83,12 +72,14 @@ public class CallbackHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) {
 
-        assertNotNull("callbackLogic", callbackLogic);
+        final HttpActionAdapter<Object, UndertowWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
+        final CallbackLogic<Object, UndertowWebContext> bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
+
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
-        callbackLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE, this.defaultUrl,
-                this.saveInSession, this.multiProfile, this.renewSession, this.defaultClient);
+        bestLogic.perform(context, config, bestAdapter, this.defaultUrl, this.saveInSession,
+                this.multiProfile, this.renewSession, this.defaultClient);
     }
 
     protected CallbackLogic<Object, UndertowWebContext> getCallbackLogic() {

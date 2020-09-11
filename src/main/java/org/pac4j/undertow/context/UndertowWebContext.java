@@ -56,17 +56,17 @@ public class UndertowWebContext implements WebContext {
     }
 
     @Override
-    public String getRequestParameter(final String name) {
+    public Optional<String> getRequestParameter(final String name) {
         Deque<String> param = exchange.getQueryParameters().get(name);
         if (param != null) {
-            return param.peek();
+            return Optional.ofNullable(param.peek());
         } else {
             FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
             if (data != null && data.get(name) != null) {
-                return data.get(name).peek().getValue();
+                return Optional.ofNullable(data.get(name).peek().getValue());
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -86,23 +86,13 @@ public class UndertowWebContext implements WebContext {
     }
 
     @Override
-    public String getRequestHeader(final String name) {
-        return exchange.getRequestHeaders().get(name, 0);
+    public Optional<String> getRequestHeader(final String name) {
+        return Optional.ofNullable(exchange.getRequestHeaders().get(name, 0));
     }
 
     @Override
     public String getRequestMethod() {
         return exchange.getRequestMethod().toString();
-    }
-
-    @Override
-    public void writeResponseContent(final String content) {
-        exchange.getResponseSender().send(content);
-    }
-
-    @Override
-    public void setResponseStatus(final int code) {
-        exchange.setStatusCode(code);
     }
 
     @Override
@@ -188,16 +178,16 @@ public class UndertowWebContext implements WebContext {
     }
 
     @Override
-    public Object getRequestAttribute(final String name) {
+    public Optional<Object> getRequestAttribute(final String name) {
         Object value = null;
         Deque<String> v = exchange.getPathParameters().get(SPECIFIC_PAC4J_DATA + name);
         if (v != null) {
             final String serializedValue = v.getFirst();
             if (serializedValue != null) {
-                value = JAVA_SERIALIZATION_HELPER.unserializeFromBase64(serializedValue);
+                value = JAVA_SERIALIZATION_HELPER.deserializeFromBase64(serializedValue);
             }
         }
-        return value;
+        return Optional.ofNullable(value);
     }
 
     @Override

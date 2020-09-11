@@ -6,28 +6,25 @@ import io.undertow.server.handlers.BlockingHandler;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.core.util.FindBest;
 import org.pac4j.undertow.context.UndertowWebContext;
-import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
+import org.pac4j.undertow.http.UndertowHttpActionAdapter;
 import org.pac4j.undertow.profile.UndertowProfileManager;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
- * <p>This handler protects an url, based on the {@link #securityLogic}.</p>
- *
- * <p>The configuration can be provided via constructors for the following options:</p>
- * <ul>
- *     <li><code>config</code> (the security configuration itself)</li>
- *     <li><code>clients</code> (list of clients for authentication)</li>
- *     <li><code>authorizers</code> (list of authorizers)</li>
- *     <li><code>matchers</code> (list of matchers)</li>
- *     <li><code>multiProfile</code>  (whether multiple profiles should be kept).</li>
- * </ul>
+ * <p>This filter protects an URL.</p>
  *
  * @author Jerome Leleu
  * @since 1.2.0
  */
 public class SecurityHandler implements HttpHandler {
+
+    static {
+        Config.defaultProfileManagerFactory("UndertowProfileManager", ctx -> new UndertowProfileManager(ctx));
+    }
 
     private SecurityLogic<Object, UndertowWebContext> securityLogic;
 
@@ -44,8 +41,6 @@ public class SecurityHandler implements HttpHandler {
     private Boolean multiProfile;
 
     protected SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
-        securityLogic = new DefaultSecurityLogic<>();
-        ((DefaultSecurityLogic<Object, UndertowWebContext>) securityLogic).setProfileManagerFactory(UndertowProfileManager::new);
         this.toWrap = toWrap;
         this.config = config;
         this.clients = clients;
@@ -85,16 +80,18 @@ public class SecurityHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        assertNotNull("securityLogic", securityLogic);
+        final HttpActionAdapter<Object, UndertowWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
+        final SecurityLogic<Object, UndertowWebContext> bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
+
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
-        securityLogic.perform(context, this.config, (ctx, profiles, parameters) -> {
+        bestLogic.perform(context, this.config, (ctx, profiles, parameters) -> {
 
             toWrap.handleRequest(exchange);
             return null;
 
-        }, UndertowNopHttpActionAdapter.INSTANCE, this.clients, this.authorizers, this.matchers, this.multiProfile);
+        }, bestAdapter, this.clients, this.authorizers, this.matchers, this.multiProfile);
     }
 
     protected SecurityLogic<Object, UndertowWebContext> getSecurityLogic() {

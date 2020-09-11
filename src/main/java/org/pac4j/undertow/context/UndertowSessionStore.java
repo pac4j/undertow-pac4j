@@ -4,6 +4,8 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.session.*;
 import org.pac4j.core.context.session.SessionStore;
 
+import java.util.Optional;
+
 /**
  * Specific session store for Undertow relying on the {@link SessionManager} and {@link SessionConfig}.
  *
@@ -38,12 +40,12 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
     }
 
     @Override
-    public Object get(final UndertowWebContext context, final String key) {
+    public Optional<Object> get(final UndertowWebContext context, final String key) {
         Session session = getExistingSession(context);
         if (session == null) {
-            return null;
+            return Optional.empty();
         }
-        return session.getAttribute(key);
+        return Optional.ofNullable(session.getAttribute(key));
     }
 
     @Override
@@ -70,19 +72,19 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
     }
 
     @Override
-    public Object getTrackableSession(final UndertowWebContext context) {
-        return getSession(context);
+    public Optional<Object> getTrackableSession(final UndertowWebContext context) {
+        return Optional.ofNullable(getSession(context));
     }
 
     @Override
-    public SessionStore<UndertowWebContext> buildFromTrackableSession(final UndertowWebContext context, final Object trackableSession) {
-        return new UndertowSessionStore(context.getExchange()) {
+    public Optional<SessionStore<UndertowWebContext>> buildFromTrackableSession(final UndertowWebContext context, final Object trackableSession) {
+        return Optional.of(new UndertowSessionStore(context.getExchange()) {
             @Override
             protected Session getExistingSession(UndertowWebContext context) {
                 return (Session) trackableSession;
             }
 
-        };
+        });
     }
 
     @Override

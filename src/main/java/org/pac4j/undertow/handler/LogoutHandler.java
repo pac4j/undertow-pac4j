@@ -6,24 +6,15 @@ import io.undertow.server.HttpServerExchange;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.DefaultLogoutLogic;
 import org.pac4j.core.engine.LogoutLogic;
+import org.pac4j.core.http.adapter.HttpActionAdapter;
+import org.pac4j.core.util.FindBest;
 import org.pac4j.undertow.context.UndertowWebContext;
-import org.pac4j.undertow.http.UndertowNopHttpActionAdapter;
-import org.pac4j.undertow.profile.UndertowProfileManager;
+import org.pac4j.undertow.http.UndertowHttpActionAdapter;
 
 import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
- * <p>This handler handles the application logout process, based on the {@link #logoutLogic}.</p>
- *
- * <p>The configuration can be provided via the following parameters:</p>
- * <ul>
- *     <li><code>config</code> (the security configuration itself)</li>
- *     <li><code>defaultUrl</code> (default logourl url)</li>
- *     <li><code>logoutUrlPattern</code> (pattern that logout urls must match)</li>
- *     <li><code>localLogout</code> (whether the application logout must be performed)</li>
- *     <li><code>destroySession</code> (whether we must destroy the web session during the local logout)</li>
- *     <li><code>centralLogout</code> (whether the centralLogout must be performed)</li>
- * </ul>
+ * <p>This filter handles the (application + identity provider) logout process.</p>
  *
  * @author Jerome Leleu
  * @since 1.1.0
@@ -44,13 +35,7 @@ public class LogoutHandler implements HttpHandler {
 
     private Boolean centralLogout;
 
-    public LogoutHandler() {
-        logoutLogic = new DefaultLogoutLogic<>();
-        ((DefaultLogoutLogic<Object, UndertowWebContext>) logoutLogic).setProfileManagerFactory(UndertowProfileManager::new);
-    }
-
     public LogoutHandler(final Config config) {
-        this();
         this.config = config;
     }
 
@@ -67,12 +52,14 @@ public class LogoutHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        assertNotNull("logoutLogic", logoutLogic);
+        final HttpActionAdapter<Object, UndertowWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
+        final LogoutLogic<Object, UndertowWebContext> bestLogic = FindBest.logoutLogic(logoutLogic, config, DefaultLogoutLogic.INSTANCE);
+
         assertNotNull("config", config);
         final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
 
-        logoutLogic.perform(context, config, UndertowNopHttpActionAdapter.INSTANCE,
-                defaultUrl, logoutUrlPattern, localLogout, destroySession, centralLogout);
+        bestLogic.perform(context, config, bestAdapter, defaultUrl, logoutUrlPattern,
+                localLogout, destroySession, centralLogout);
     }
 
     public LogoutLogic<Object, UndertowWebContext> getLogoutLogic() {
