@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo -e "TRAVIS_PULL_REQUEST: $TRAVIS_PULL_REQUEST"
+echo -e "TRAVIS_BRANCH: $TRAVIS_BRANCH"
+
 # Only invoke the deployment to Sonatype when it's not a PR and only for master
 if [ "$TRAVIS_PULL_REQUEST" == "false" ] && [ "$TRAVIS_BRANCH" == "master" ]; then
   mvn deploy --settings travis/settings.xml
