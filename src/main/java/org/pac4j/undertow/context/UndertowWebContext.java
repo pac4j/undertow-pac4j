@@ -20,6 +20,7 @@ import org.pac4j.core.util.CommonHelper;
  *
  * @author Jerome Leleu
  * @author Michael Remond
+ * @author Igor Lobanov
  * @since 1.0.0
  */
 public class UndertowWebContext implements WebContext {

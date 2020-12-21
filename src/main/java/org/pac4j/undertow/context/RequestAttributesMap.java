@@ -6,11 +6,14 @@ import io.undertow.util.AttachmentKey;
 import java.util.HashMap;
 
 /**
- * A map of request attributed stored in Undertow's HttpServerExchange as an attachment.
+ * A map of request attributes stored in Undertow's HttpServerExchange as an attachment.
  *
  * This is a simple extension of a HashMap that adds no custom logic, but it must be
  * a separate class, because Undertow uses class-based AttachmentKey to distinguish
  * attachment types.
+ *
+ * @author Igor Lobanov
+ * @since 4.1.0
  */
 public class RequestAttributesMap extends HashMap<String, Object> {
 
