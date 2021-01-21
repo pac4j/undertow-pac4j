@@ -7,7 +7,6 @@ import io.undertow.server.handlers.form.FormDataParser;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -15,20 +14,16 @@ import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.util.CommonHelper;
-import org.pac4j.core.util.JavaSerializationHelper;
 
 /**
  * The webcontext implementation for Undertow.
  *
  * @author Jerome Leleu
  * @author Michael Remond
+ * @author Igor Lobanov
  * @since 1.0.0
  */
 public class UndertowWebContext implements WebContext {
-
-    private static final String SPECIFIC_PAC4J_DATA = "_specificPac4jData_";
-
-    private static JavaSerializationHelper JAVA_SERIALIZATION_HELPER = new JavaSerializationHelper();
 
     private final HttpServerExchange exchange;
     private final SessionStore<UndertowWebContext> sessionStore;
@@ -143,11 +138,7 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public void setRequestAttribute(final String name, final Object value) {
-        String result = null;
-        if (value != null) {
-            result = JAVA_SERIALIZATION_HELPER.serializeToBase64((Serializable) value);
-        }
-        exchange.addPathParam(SPECIFIC_PAC4J_DATA + name, result);
+        RequestAttributesMap.getOrInitialize(exchange).put(name, value);
     }
 
     @Override
@@ -179,28 +170,11 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Optional<Object> getRequestAttribute(final String name) {
-        Object value = null;
-        Deque<String> v = exchange.getPathParameters().get(SPECIFIC_PAC4J_DATA + name);
-        if (v != null) {
-            final String serializedValue = v.getFirst();
-            if (serializedValue != null) {
-                value = JAVA_SERIALIZATION_HELPER.deserializeFromBase64(serializedValue);
-            }
-        }
-        return Optional.ofNullable(value);
+        return Optional.ofNullable(RequestAttributesMap.getOrInitialize(exchange).get(name));
     }
 
     @Override
     public boolean isSecure() {
         return exchange.isSecure();
-    }
-
-    public static JavaSerializationHelper getJavaSerializationHelper() {
-        return JAVA_SERIALIZATION_HELPER;
-    }
-
-    public static void setJavaSerializationHelper(final JavaSerializationHelper javaSerializationHelper) {
-        CommonHelper.assertNotNull("javaSerializationHelper", javaSerializationHelper);
-        JAVA_SERIALIZATION_HELPER = javaSerializationHelper;
     }
 }
