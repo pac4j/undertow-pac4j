@@ -17,6 +17,8 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
     private final SessionManager sessionManager;
     private final SessionConfig sessionConfig;
 
+    private String sessionCookieName = "JSESSIONID";
+
     public UndertowSessionStore(final HttpServerExchange exchange) {
         this.sessionManager = exchange.getAttachment(SessionManager.ATTACHMENT_KEY);
         this.sessionConfig = exchange.getAttachment(SessionConfig.ATTACHMENT_KEY);
@@ -101,6 +103,7 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
             attributeValues[i] = session.getAttribute(attributeNames[i]);
         }
 
+        context.getExchange().getRequestCookies().remove(sessionCookieName);
         session.invalidate(exchange);
 
         final Session newSession = sessionManager.createSession(exchange, sessionConfig);
@@ -108,5 +111,13 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
             newSession.setAttribute(attributeNames[i], attributeValues[i]);
         }
         return true;
+    }
+
+    public String getSessionCookieName() {
+        return sessionCookieName;
+    }
+
+    public void setSessionCookieName(final String sessionCookieName) {
+        this.sessionCookieName = sessionCookieName;
     }
 }
