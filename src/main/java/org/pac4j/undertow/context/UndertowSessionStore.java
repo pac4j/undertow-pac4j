@@ -108,19 +108,15 @@ public class UndertowSessionStore implements SessionStore {
     public boolean renewSession(final WebContext webContext) {
         final UndertowWebContext context = (UndertowWebContext) webContext;
         final HttpServerExchange exchange = context.getExchange();
-        final Optional<Session> session = getSession(context, false);
-        if (session.isEmpty()) {
-            sessionManager.createSession(exchange, sessionConfig);
-            return true;
-        }
-        final String[] attributeNames = session.get().getAttributeNames().toArray(new String[0]);
+        final Session session = getSession(context, true).get();
+        final String[] attributeNames = session.getAttributeNames().toArray(new String[0]);
         final Object[] attributeValues = new Object[attributeNames.length];
         for (int i = 0; i < attributeNames.length; i++) {
-            attributeValues[i] = session.get().getAttribute(attributeNames[i]);
+            attributeValues[i] = session.getAttribute(attributeNames[i]);
         }
 
         context.getExchange().getRequestCookies().remove(sessionCookieName);
-        session.get().invalidate(exchange);
+        session.invalidate(exchange);
 
         final Session newSession = sessionManager.createSession(exchange, sessionConfig);
         for (int i = 0; i < attributeNames.length; i++) {
