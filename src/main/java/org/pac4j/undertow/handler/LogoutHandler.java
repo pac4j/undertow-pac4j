@@ -4,14 +4,15 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.DefaultLogoutLogic;
 import org.pac4j.core.engine.LogoutLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.util.FindBest;
-import org.pac4j.undertow.context.UndertowWebContext;
+import org.pac4j.undertow.context.UndertowContextFactory;
+import org.pac4j.undertow.context.UndertowSessionStore;
 import org.pac4j.undertow.http.UndertowHttpActionAdapter;
-
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
  * <p>This filter handles the (application + identity provider) logout process.</p>
@@ -21,7 +22,7 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class LogoutHandler implements HttpHandler {
     
-    private LogoutLogic<Object, UndertowWebContext> logoutLogic;
+    private LogoutLogic logoutLogic;
 
     private Config config;
 
@@ -52,21 +53,20 @@ public class LogoutHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        final HttpActionAdapter<Object, UndertowWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
-        final LogoutLogic<Object, UndertowWebContext> bestLogic = FindBest.logoutLogic(logoutLogic, config, DefaultLogoutLogic.INSTANCE);
+        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, new UndertowSessionStore(exchange));
+        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
+        final LogoutLogic bestLogic = FindBest.logoutLogic(logoutLogic, config, DefaultLogoutLogic.INSTANCE);
 
-        assertNotNull("config", config);
-        final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
-
-        bestLogic.perform(context, config, bestAdapter, defaultUrl, logoutUrlPattern,
+        final WebContext context = FindBest.webContextFactory(null, config, UndertowContextFactory.INSTANCE).newContext(exchange);
+        bestLogic.perform(context, bestSessionStore, config, bestAdapter, defaultUrl, logoutUrlPattern,
                 localLogout, destroySession, centralLogout);
     }
 
-    public LogoutLogic<Object, UndertowWebContext> getLogoutLogic() {
+    public LogoutLogic getLogoutLogic() {
         return logoutLogic;
     }
 
-    public void setLogoutLogic(final LogoutLogic<Object, UndertowWebContext> logoutLogic) {
+    public void setLogoutLogic(final LogoutLogic logoutLogic) {
         this.logoutLogic = logoutLogic;
     }
 

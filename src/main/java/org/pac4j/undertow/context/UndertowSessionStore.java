@@ -2,6 +2,7 @@ package org.pac4j.undertow.context;
 
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.session.*;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.SessionStore;
 
 import java.util.Optional;
@@ -12,10 +13,11 @@ import java.util.Optional;
  * @author Jerome Leleu
  * @since 1.1.0
  */
-public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
+public class UndertowSessionStore implements SessionStore {
 
-    private final SessionManager sessionManager;
-    private final SessionConfig sessionConfig;
+    private SessionManager sessionManager;
+    private SessionConfig sessionConfig;
+    private Session session;
 
     private String sessionCookieName = "JSESSIONID";
 
@@ -24,36 +26,51 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
         this.sessionConfig = exchange.getAttachment(SessionConfig.ATTACHMENT_KEY);
     }
 
-    protected Session getExistingSession(final UndertowWebContext context) {
-        return sessionManager.getSession(context.getExchange(), sessionConfig);
+    protected UndertowSessionStore(final HttpServerExchange exchange, final Session session) {
+        this(exchange);
+        this.session = session;
     }
 
-    private Session getSession(final UndertowWebContext context) {
-        final Session session = getExistingSession(context);
+    private Optional<Session> getSession(final WebContext webContext, final boolean createSession) {
+        final UndertowWebContext context = (UndertowWebContext) webContext;
         if (session != null) {
-            return session;
+            return Optional.of(session);
         }
-        return sessionManager.createSession(context.getExchange(), sessionConfig);
-    }
-
-    @Override
-    public String getOrCreateSessionId(final UndertowWebContext context) {
-        return getSession(context).getId();
-    }
-
-    @Override
-    public Optional<Object> get(final UndertowWebContext context, final String key) {
-        Session session = getExistingSession(context);
-        if (session == null) {
+        final Session session = sessionManager.getSession(context.getExchange(), sessionConfig);
+        if (session != null) {
+            return Optional.of(session);
+        }
+        if (createSession) {
+            return Optional.of(sessionManager.createSession(context.getExchange(), sessionConfig));
+        } else {
             return Optional.empty();
         }
-        return Optional.ofNullable(session.getAttribute(key));
     }
 
     @Override
-    public void set(final UndertowWebContext context, final String key, final Object value) {
-        final Session session = getSession(context);
-        session.setAttribute(key, value);
+    public Optional<String> getSessionId(final WebContext context, final boolean createSession) {
+        final Optional<Session> session = getSession(context, createSession);
+        if (session.isPresent()) {
+            return Optional.of(session.get().getId());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+
+    @Override
+    public Optional<Object> get(final WebContext context, final String key) {
+        final Optional<Session> session = getSession(context, false);
+        if (session.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(session.get().getAttribute(key));
+    }
+
+    @Override
+    public void set(final WebContext context, final String key, final Object value) {
+        final Optional<Session> session = getSession(context, true);
+        session.get().setAttribute(key, value);
     }
 
     public SessionManager getSessionManager() {
@@ -65,46 +82,45 @@ public class UndertowSessionStore implements SessionStore<UndertowWebContext> {
     }
 
     @Override
-    public boolean destroySession(final UndertowWebContext context) {
-        final Session session = getExistingSession(context);
-        if (session != null) {
-            session.invalidate(context.getExchange());
+    public boolean destroySession(final WebContext context) {
+        final Optional<Session> session = getSession(context, false);
+        if (session.isPresent()) {
+            session.get().invalidate(((UndertowWebContext) context).getExchange());
         }
         return true;
     }
 
     @Override
-    public Optional<Object> getTrackableSession(final UndertowWebContext context) {
-        return Optional.ofNullable(getSession(context));
+    public Optional<Object> getTrackableSession(final WebContext context) {
+        return Optional.ofNullable(getSession(context, false));
     }
 
     @Override
-    public Optional<SessionStore<UndertowWebContext>> buildFromTrackableSession(final UndertowWebContext context, final Object trackableSession) {
-        return Optional.of(new UndertowSessionStore(context.getExchange()) {
-            @Override
-            protected Session getExistingSession(UndertowWebContext context) {
-                return (Session) trackableSession;
-            }
-
-        });
+    public Optional<SessionStore> buildFromTrackableSession(final WebContext context, final Object trackableSession) {
+        if (trackableSession != null) {
+            return Optional.of(new UndertowSessionStore(((UndertowWebContext) context).getExchange(), (Session) trackableSession));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public boolean renewSession(final UndertowWebContext context) {
+    public boolean renewSession(final WebContext webContext) {
+        final UndertowWebContext context = (UndertowWebContext) webContext;
         final HttpServerExchange exchange = context.getExchange();
-        final Session session = getExistingSession(context);
-        if (session == null) {
+        final Optional<Session> session = getSession(context, false);
+        if (session.isEmpty()) {
             sessionManager.createSession(exchange, sessionConfig);
             return true;
         }
-        final String[] attributeNames = session.getAttributeNames().toArray(new String[0]);
+        final String[] attributeNames = session.get().getAttributeNames().toArray(new String[0]);
         final Object[] attributeValues = new Object[attributeNames.length];
         for (int i = 0; i < attributeNames.length; i++) {
-            attributeValues[i] = session.getAttribute(attributeNames[i]);
+            attributeValues[i] = session.get().getAttribute(attributeNames[i]);
         }
 
         context.getExchange().getRequestCookies().remove(sessionCookieName);
-        session.invalidate(exchange);
+        session.get().invalidate(exchange);
 
         final Session newSession = sessionManager.createSession(exchange, sessionConfig);
         for (int i = 0; i < attributeNames.length; i++) {

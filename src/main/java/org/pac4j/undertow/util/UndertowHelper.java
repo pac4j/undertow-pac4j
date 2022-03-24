@@ -4,7 +4,7 @@ import io.undertow.security.api.AuthenticationMode;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.security.impl.SecurityContextFactoryImpl;
 import io.undertow.server.HttpServerExchange;
-import org.pac4j.core.profile.CommonProfile;
+import org.pac4j.core.profile.UserProfile;
 import org.pac4j.undertow.account.Pac4jAccount;
 import org.pac4j.undertow.context.UndertowWebContext;
 
@@ -24,7 +24,7 @@ public class UndertowHelper {
      * @param context the web context
      * @param profiles the linked hashmap of profiles
      */
-    public static void populateContext(final UndertowWebContext context, final LinkedHashMap<String, CommonProfile> profiles) {
+    public static void populateContext(final UndertowWebContext context, final LinkedHashMap<String, UserProfile> profiles) {
         if (profiles != null && profiles.size() > 0) {
             final HttpServerExchange exchange = context.getExchange();
             SecurityContext securityContext = exchange.getSecurityContext();

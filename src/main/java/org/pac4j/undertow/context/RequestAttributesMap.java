@@ -24,6 +24,9 @@ public class RequestAttributesMap extends HashMap<String, Object> {
     /**
      * Returns an instance of RequestAttributesMap stored in a given Undertow's HttpServerExchange
      * object as an attachment. If there had not been such attachment in the exchange, it is created.
+     *
+     * @param exchange the Undertow exchange
+     * @return the request attributes map
      */
     public static RequestAttributesMap getOrInitialize(HttpServerExchange exchange) {
         RequestAttributesMap attributesMap = exchange.getAttachment(ATTACHMENT_KEY);

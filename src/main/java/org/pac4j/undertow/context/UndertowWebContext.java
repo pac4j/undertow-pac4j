@@ -12,7 +12,6 @@ import java.util.Map.Entry;
 
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
-import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.util.CommonHelper;
 
 /**
@@ -26,28 +25,13 @@ import org.pac4j.core.util.CommonHelper;
 public class UndertowWebContext implements WebContext {
 
     private final HttpServerExchange exchange;
-    private final SessionStore<UndertowWebContext> sessionStore;
 
     public UndertowWebContext(final HttpServerExchange exchange) {
-        this(exchange, null);
-    }
-
-    public UndertowWebContext(final HttpServerExchange exchange, final SessionStore<UndertowWebContext> sessionStore) {
         this.exchange = exchange;
-        if (sessionStore != null) {
-            this.sessionStore = sessionStore;
-        } else {
-            this.sessionStore = new UndertowSessionStore(exchange);
-        }
     }
 
     public HttpServerExchange getExchange() {
         return exchange;
-    }
-
-    @Override
-    public SessionStore<UndertowWebContext> getSessionStore() {
-        return sessionStore;
     }
 
     @Override
@@ -88,6 +72,11 @@ public class UndertowWebContext implements WebContext {
     @Override
     public String getRequestMethod() {
         return exchange.getRequestMethod().toString();
+    }
+
+    @Override
+    public Optional<String> getResponseHeader(final String name) {
+        return Optional.ofNullable(exchange.getResponseHeaders().getFirst(name));
     }
 
     @Override

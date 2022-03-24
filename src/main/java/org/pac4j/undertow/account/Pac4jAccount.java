@@ -1,8 +1,8 @@
 package org.pac4j.undertow.account;
 
 import io.undertow.security.idm.Account;
-import org.pac4j.core.profile.CommonProfile;
 import org.pac4j.core.profile.ProfileHelper;
+import org.pac4j.core.profile.UserProfile;
 
 import java.security.Principal;
 import java.util.HashSet;
@@ -18,21 +18,21 @@ import java.util.Set;
  */
 public class Pac4jAccount implements Account {
 
-    private final List<CommonProfile> profiles;
+    private final List<UserProfile> profiles;
 
     private Set<String> roles;
     private Principal principal;
 
-    public Pac4jAccount(final LinkedHashMap<String, CommonProfile> profiles) {
+    public Pac4jAccount(final LinkedHashMap<String, UserProfile> profiles) {
         this.roles = new HashSet<>();
         this.profiles = ProfileHelper.flatIntoAProfileList(profiles);
-        for (final CommonProfile profile : this.profiles) {
+        for (final UserProfile profile : this.profiles) {
             final Set<String> roles = profile.getRoles();
             for (final String role : roles) {
                 this.roles.add(role);
             }
         }
-        final CommonProfile profile = ProfileHelper.flatIntoOneProfile(this.profiles).get();
+        final UserProfile profile = ProfileHelper.flatIntoOneProfile(this.profiles).get();
         this.principal = () -> profile.getId();
     }
 
@@ -51,7 +51,7 @@ public class Pac4jAccount implements Account {
      *
      * @return the main profile
      */
-    public CommonProfile getProfile() {
+    public UserProfile getProfile() {
         return ProfileHelper.flatIntoOneProfile(this.profiles).get();
     }
 
@@ -60,7 +60,7 @@ public class Pac4jAccount implements Account {
      *
      * @return the list of profiles
      */
-    public List<CommonProfile> getProfiles() {
+    public List<UserProfile> getProfiles() {
         return this.profiles;
     }
 }

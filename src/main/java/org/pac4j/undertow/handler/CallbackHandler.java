@@ -8,14 +8,15 @@ import io.undertow.server.handlers.form.EagerFormParsingHandler;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.FormParserFactory;
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.core.engine.DefaultCallbackLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.util.FindBest;
-import org.pac4j.undertow.context.UndertowWebContext;
+import org.pac4j.undertow.context.UndertowContextFactory;
+import org.pac4j.undertow.context.UndertowSessionStore;
 import org.pac4j.undertow.http.UndertowHttpActionAdapter;
-
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
  * <p>This filter finishes the login process for an indirect client.</p>
@@ -26,24 +27,19 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
  */
 public class CallbackHandler implements HttpHandler {
 
-    private CallbackLogic<Object, UndertowWebContext> callbackLogic;
+    private CallbackLogic callbackLogic;
 
     private Config config;
 
     private String defaultUrl;
 
-    private Boolean saveInSession;
-
-    private Boolean multiProfile;
-
     private Boolean renewSession;
 
     private String defaultClient;
 
-    protected CallbackHandler(final Config config, final String defaultUrl, final Boolean multiProfile)  {
+    protected CallbackHandler(final Config config, final String defaultUrl)  {
         this.config = config;
         this.defaultUrl = defaultUrl;
-        this.multiProfile = multiProfile;
     }
 
     public static HttpHandler build(final Config config) {
@@ -54,14 +50,10 @@ public class CallbackHandler implements HttpHandler {
         return build(config, defaultUrl, null);
     }
 
-    public static HttpHandler build(final Config config, final String defaultUrl, final Boolean multiProfile) {
-        return build(config, defaultUrl, multiProfile, null);
-    }
-
-    public static HttpHandler build(final Config config, final String defaultUrl, final Boolean multiProfile, final CallbackLogic<Object, UndertowWebContext> callbackLogic) {
+    public static HttpHandler build(final Config config, final String defaultUrl, final CallbackLogic callbackLogic) {
         final FormParserFactory factory = FormParserFactory.builder().addParser(new FormEncodedDataDefinition()).build();
         final EagerFormParsingHandler formHandler = new EagerFormParsingHandler(factory);
-        final CallbackHandler callbackHandler = new CallbackHandler(config, defaultUrl, multiProfile);
+        final CallbackHandler callbackHandler = new CallbackHandler(config, defaultUrl);
         if (callbackLogic != null) {
             callbackHandler.setCallbackLogic(callbackLogic);
         }
@@ -71,22 +63,19 @@ public class CallbackHandler implements HttpHandler {
 
     @Override
     public void handleRequest(final HttpServerExchange exchange) {
+        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, new UndertowSessionStore(exchange));
+        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
+        final CallbackLogic bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
 
-        final HttpActionAdapter<Object, UndertowWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
-        final CallbackLogic<Object, UndertowWebContext> bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
-
-        assertNotNull("config", config);
-        final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
-
-        bestLogic.perform(context, config, bestAdapter, this.defaultUrl, this.saveInSession,
-                this.multiProfile, this.renewSession, this.defaultClient);
+        final WebContext context = FindBest.webContextFactory(null, config, UndertowContextFactory.INSTANCE).newContext(exchange);
+        bestLogic.perform(context, bestSessionStore, config, bestAdapter, this.defaultUrl, this.renewSession, this.defaultClient);
     }
 
-    protected CallbackLogic<Object, UndertowWebContext> getCallbackLogic() {
+    protected CallbackLogic getCallbackLogic() {
         return callbackLogic;
     }
 
-    protected void setCallbackLogic(final CallbackLogic<Object, UndertowWebContext> callbackLogic) {
+    protected void setCallbackLogic(final CallbackLogic callbackLogic) {
         this.callbackLogic = callbackLogic;
     }
 
@@ -96,22 +85,6 @@ public class CallbackHandler implements HttpHandler {
 
     public void setDefaultUrl(final String defaultUrl) {
         this.defaultUrl = defaultUrl;
-    }
-
-    public Boolean getSaveInSession() {
-        return saveInSession;
-    }
-
-    public void setSaveInSession(final Boolean saveInSession) {
-        this.saveInSession = saveInSession;
-    }
-
-    public Boolean getMultiProfile() {
-        return multiProfile;
-    }
-
-    public void setMultiProfile(final Boolean multiProfile) {
-        this.multiProfile = multiProfile;
     }
 
     public Boolean getRenewSession() {

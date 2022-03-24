@@ -4,15 +4,16 @@ import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.BlockingHandler;
 import org.pac4j.core.config.Config;
+import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.core.http.adapter.HttpActionAdapter;
 import org.pac4j.core.util.FindBest;
-import org.pac4j.undertow.context.UndertowWebContext;
+import org.pac4j.undertow.context.UndertowContextFactory;
+import org.pac4j.undertow.context.UndertowSessionStore;
 import org.pac4j.undertow.http.UndertowHttpActionAdapter;
 import org.pac4j.undertow.profile.UndertowProfileManager;
-
-import static org.pac4j.core.util.CommonHelper.assertNotNull;
 
 /**
  * <p>This filter protects an URL.</p>
@@ -23,10 +24,10 @@ import static org.pac4j.core.util.CommonHelper.assertNotNull;
 public class SecurityHandler implements HttpHandler {
 
     static {
-        Config.defaultProfileManagerFactory("UndertowProfileManager", ctx -> new UndertowProfileManager(ctx));
+        Config.defaultProfileManagerFactory("UndertowProfileManager", (ctx, store) -> new UndertowProfileManager(ctx, store));
     }
 
-    private SecurityLogic<Object, UndertowWebContext> securityLogic;
+    private SecurityLogic securityLogic;
 
     private HttpHandler toWrap;
 
@@ -38,15 +39,12 @@ public class SecurityHandler implements HttpHandler {
 
     private String matchers;
 
-    private Boolean multiProfile;
-
-    protected SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
+    protected SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers) {
         this.toWrap = toWrap;
         this.config = config;
         this.clients = clients;
         this.authorizers = authorizers;
         this.matchers = matchers;
-        this.multiProfile = multiProfile;
     }
 
     public static HttpHandler build(final HttpHandler toWrap, Config config) {
@@ -65,12 +63,8 @@ public class SecurityHandler implements HttpHandler {
         return build(toWrap, config, clients, authorizers, matchers, null);
     }
 
-    public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile) {
-        return build(toWrap, config, clients, authorizers, matchers, multiProfile, null);
-    }
-
-    public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers, final Boolean multiProfile, final SecurityLogic<Object, UndertowWebContext> securityLogic) {
-        final SecurityHandler securityHandler = new SecurityHandler(toWrap, config, clients, authorizers, matchers, multiProfile);
+    public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers, final SecurityLogic securityLogic) {
+        final SecurityHandler securityHandler = new SecurityHandler(toWrap, config, clients, authorizers, matchers);
         if (securityLogic != null) {
             securityHandler.setSecurityLogic(securityLogic);
         }
@@ -80,25 +74,24 @@ public class SecurityHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
 
-        final HttpActionAdapter<Object, UndertowWebContext> bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
-        final SecurityLogic<Object, UndertowWebContext> bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
+        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, new UndertowSessionStore(exchange));
+        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
+        final SecurityLogic bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
 
-        assertNotNull("config", config);
-        final UndertowWebContext context = new UndertowWebContext(exchange, config.getSessionStore());
-
-        bestLogic.perform(context, this.config, (ctx, profiles, parameters) -> {
+        final WebContext context = FindBest.webContextFactory(null, config, UndertowContextFactory.INSTANCE).newContext(exchange);
+        bestLogic.perform(context, bestSessionStore, this.config, (ctx, store, profiles, parameters) -> {
 
             toWrap.handleRequest(exchange);
             return null;
 
-        }, bestAdapter, this.clients, this.authorizers, this.matchers, this.multiProfile);
+        }, bestAdapter, this.clients, this.authorizers, this.matchers);
     }
 
-    protected SecurityLogic<Object, UndertowWebContext> getSecurityLogic() {
+    protected SecurityLogic getSecurityLogic() {
         return securityLogic;
     }
 
-    protected void setSecurityLogic(final SecurityLogic<Object, UndertowWebContext> securityLogic) {
+    protected void setSecurityLogic(final SecurityLogic securityLogic) {
         this.securityLogic = securityLogic;
     }
 
@@ -124,13 +117,5 @@ public class SecurityHandler implements HttpHandler {
 
     public void setMatchers(final String matchers) {
         this.matchers = matchers;
-    }
-
-    public Boolean getMultiProfile() {
-        return multiProfile;
-    }
-
-    public void setMultiProfile(final Boolean multiProfile) {
-        this.multiProfile = multiProfile;
     }
 }

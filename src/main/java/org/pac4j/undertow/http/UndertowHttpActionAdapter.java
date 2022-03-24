@@ -2,6 +2,7 @@ package org.pac4j.undertow.http;
 
 import io.undertow.server.HttpServerExchange;
 import org.pac4j.core.context.HttpConstants;
+import org.pac4j.core.context.WebContext;
 import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.exception.http.HttpAction;
 import org.pac4j.core.exception.http.WithContentAction;
@@ -15,15 +16,15 @@ import org.pac4j.undertow.context.UndertowWebContext;
  * @author Jerome Leleu
  * @since 1.2.0
  */
-public class UndertowHttpActionAdapter implements HttpActionAdapter<Object, UndertowWebContext> {
+public class UndertowHttpActionAdapter implements HttpActionAdapter {
 
     public static final UndertowHttpActionAdapter INSTANCE = new UndertowHttpActionAdapter();
 
     @Override
-    public Object adapt(final HttpAction action, final UndertowWebContext context) {
+    public Object adapt(final HttpAction action, final WebContext context) {
         if (action != null) {
             final int code = action.getCode();
-            final HttpServerExchange exchange = context.getExchange();
+            final HttpServerExchange exchange = ((UndertowWebContext) context).getExchange();
             exchange.setStatusCode(code);
 
             if (action instanceof WithLocationAction) {
