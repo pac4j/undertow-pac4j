@@ -9,6 +9,7 @@ import io.undertow.util.HttpString;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
@@ -58,7 +59,7 @@ public class UndertowWebContext implements WebContext {
         FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
         if (data != null) {
             for (String key : data) {
-                map.put(key, data.get(key).toArray(new String[data.get(key).size()]));
+                map.put(key, data.get(key).stream().map(f -> f.getValue()).collect(Collectors.toList()).toArray(new String[data.get(key).size()]));
             }
         }
         return map;
