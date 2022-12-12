@@ -46,7 +46,7 @@
 
     <properties>
         <pac4j.version>5.7.0</pac4j.version>
-        <undertow.version>2.3.0.Final</undertow.version>
+        <undertow.version>2.3.1.Final</undertow.version>
         <java.version>11</java.version>
     </properties>
 
