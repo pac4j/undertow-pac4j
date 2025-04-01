@@ -3,16 +3,10 @@ package org.pac4j.undertow.handler;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.BlockingHandler;
+import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.context.session.SessionStore;
-import org.pac4j.core.engine.DefaultSecurityLogic;
 import org.pac4j.core.engine.SecurityLogic;
-import org.pac4j.core.http.adapter.HttpActionAdapter;
-import org.pac4j.core.util.FindBest;
-import org.pac4j.undertow.context.UndertowContextFactory;
-import org.pac4j.undertow.context.UndertowSessionStore;
-import org.pac4j.undertow.http.UndertowHttpActionAdapter;
+import org.pac4j.undertow.context.UndertowParameters;
 import org.pac4j.undertow.profile.UndertowProfileManager;
 
 /**
@@ -22,16 +16,13 @@ import org.pac4j.undertow.profile.UndertowProfileManager;
  * @since 1.2.0
  */
 public class SecurityHandler implements HttpHandler {
-
-    static {
-        Config.defaultProfileManagerFactory("UndertowProfileManager", (ctx, store) -> new UndertowProfileManager(ctx, store));
-    }
+    private static final String AUTH_GRANTED = "AUTH_GRANTED";
 
     private SecurityLogic securityLogic;
 
     private HttpHandler toWrap;
-
-    private Config config;
+    
+    private final Config config;
 
     private String clients;
 
@@ -45,6 +36,7 @@ public class SecurityHandler implements HttpHandler {
         this.clients = clients;
         this.authorizers = authorizers;
         this.matchers = matchers;
+        config.setProfileManagerFactory(UndertowProfileManager::new);
     }
 
     public static HttpHandler build(final HttpHandler toWrap, Config config) {
@@ -73,18 +65,24 @@ public class SecurityHandler implements HttpHandler {
 
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
-
-        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, new UndertowSessionStore(exchange));
-        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
-        final SecurityLogic bestLogic = FindBest.securityLogic(securityLogic, config, DefaultSecurityLogic.INSTANCE);
-
-        final WebContext context = FindBest.webContextFactory(null, config, UndertowContextFactory.INSTANCE).newContext(exchange);
-        bestLogic.perform(context, bestSessionStore, this.config, (ctx, store, profiles, parameters) -> {
-
-            toWrap.handleRequest(exchange);
-            return null;
-
-        }, bestAdapter, this.clients, this.authorizers, this.matchers);
+        FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
+        // adapted from https://github.com/pac4j/javalin-pac4j/blob/6.0.x/src/main/java/org/pac4j/javalin/SecurityHandler.java#L47-L60
+        var result = config.getSecurityLogic().perform(
+                this.config,
+                (ctx, store, profiles) -> AUTH_GRANTED,
+                this.clients,
+                this.authorizers,
+                this.matchers,
+                new UndertowParameters(exchange)
+        );
+        // TODO else reject with 401 or?
+        if (result == AUTH_GRANTED) {
+            this.toWrap.handleRequest(exchange);
+        }
+        /*if (result != AUTH_GRANTED) {
+            // Same logic javalin natively uses for skipping future tasks after a redirect in a before handler
+            ((JavalinServletContext) javalinCtx).getTasks().removeIf(Task::getSkipIfExceptionOccurred);
+        }*/
     }
 
     protected SecurityLogic getSecurityLogic() {

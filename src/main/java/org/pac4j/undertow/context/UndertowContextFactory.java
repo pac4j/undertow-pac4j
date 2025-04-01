@@ -1,8 +1,9 @@
 package org.pac4j.undertow.context;
 
-import io.undertow.server.HttpServerExchange;
+import org.pac4j.core.context.FrameworkParameters;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.WebContextFactory;
+import org.pac4j.core.exception.TechnicalException;
 
 /**
  * Specific web context factory.
@@ -15,7 +16,10 @@ public class UndertowContextFactory implements WebContextFactory {
     public static final UndertowContextFactory INSTANCE = new UndertowContextFactory();
 
     @Override
-    public WebContext newContext(final Object... parameters) {
-        return new UndertowWebContext((HttpServerExchange) parameters[0]);
+    public WebContext newContext(FrameworkParameters parameters) {
+        if (parameters instanceof UndertowParameters undertowParameters) {
+            return new UndertowWebContext(undertowParameters.exchange());
+        }
+        throw new TechnicalException("Bad parameters type");
     }
 }

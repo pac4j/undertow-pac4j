@@ -2,17 +2,10 @@ package org.pac4j.undertow.handler;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-
+import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.context.session.SessionStore;
-import org.pac4j.core.engine.DefaultLogoutLogic;
 import org.pac4j.core.engine.LogoutLogic;
-import org.pac4j.core.http.adapter.HttpActionAdapter;
-import org.pac4j.core.util.FindBest;
-import org.pac4j.undertow.context.UndertowContextFactory;
-import org.pac4j.undertow.context.UndertowSessionStore;
-import org.pac4j.undertow.http.UndertowHttpActionAdapter;
+import org.pac4j.undertow.context.UndertowParameters;
 
 /**
  * <p>This filter handles the (application + identity provider) logout process.</p>
@@ -24,7 +17,7 @@ public class LogoutHandler implements HttpHandler {
     
     private LogoutLogic logoutLogic;
 
-    private Config config;
+    private final Config config;
 
     private String defaultUrl;
 
@@ -52,14 +45,16 @@ public class LogoutHandler implements HttpHandler {
 
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
-
-        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, new UndertowSessionStore(exchange));
-        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
-        final LogoutLogic bestLogic = FindBest.logoutLogic(logoutLogic, config, DefaultLogoutLogic.INSTANCE);
-
-        final WebContext context = FindBest.webContextFactory(null, config, UndertowContextFactory.INSTANCE).newContext(exchange);
-        bestLogic.perform(context, bestSessionStore, config, bestAdapter, defaultUrl, logoutUrlPattern,
-                localLogout, destroySession, centralLogout);
+        FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
+        config.getLogoutLogic().perform(
+                this.config,
+                this.defaultUrl,
+                this.logoutUrlPattern,
+                this.localLogout,
+                this.destroySession,
+                this.centralLogout,
+                new UndertowParameters(exchange)
+        );
     }
 
     public LogoutLogic getLogoutLogic() {

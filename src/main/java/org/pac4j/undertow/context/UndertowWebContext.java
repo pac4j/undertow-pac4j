@@ -8,7 +8,6 @@ import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.pac4j.core.context.Cookie;
@@ -37,11 +36,11 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Optional<String> getRequestParameter(final String name) {
-        Deque<String> param = exchange.getQueryParameters().get(name);
+        var param = getExchange().getQueryParameters().get(name);
         if (param != null) {
             return Optional.ofNullable(param.peek());
         } else {
-            FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
+            FormData data = getExchange().getAttachment(FormDataParser.FORM_DATA);
             if (data != null && data.get(name) != null) {
                 return Optional.ofNullable(data.get(name).peek().getValue());
             }
@@ -51,12 +50,12 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Map<String, String[]> getRequestParameters() {
-        Map<String, Deque<String>> params = exchange.getQueryParameters();
-        Map<String, String[]> map = new HashMap<>();
-        for (Entry<String, Deque<String>> entry : params.entrySet()) {
+        var params = getExchange().getQueryParameters();
+        var map = new HashMap<String, String[]>();
+        for (var entry : params.entrySet()) {
             map.put(entry.getKey(), entry.getValue().toArray(new String[entry.getValue().size()]));
         }
-        FormData data = exchange.getAttachment(FormDataParser.FORM_DATA);
+        FormData data = getExchange().getAttachment(FormDataParser.FORM_DATA);
         if (data != null) {
             for (String key : data) {
                 map.put(key, data.get(key).stream().map(f -> f.getValue()).collect(Collectors.toList()).toArray(new String[data.get(key).size()]));
@@ -67,7 +66,7 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Optional<String> getRequestHeader(final String name) {
-        return Optional.ofNullable(exchange.getRequestHeaders().get(name, 0));
+        return Optional.ofNullable(getExchange().getRequestHeaders().get(name, 0));
     }
 
     @Override
@@ -77,41 +76,41 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Optional<String> getResponseHeader(final String name) {
-        return Optional.ofNullable(exchange.getResponseHeaders().getFirst(name));
+        return Optional.ofNullable(getExchange().getResponseHeaders().getFirst(name));
     }
 
     @Override
     public void setResponseHeader(final String name, final String value) {
-        exchange.getResponseHeaders().put(HttpString.tryFromString(name), value);
+        getExchange().getResponseHeaders().put(HttpString.tryFromString(name), value);
     }
 
     @Override
     public String getServerName() {
-        return exchange.getHostName();
+        return getExchange().getHostName();
     }
 
     @Override
     public int getServerPort() {
-        return exchange.getHostPort();
+        return getExchange().getHostPort();
     }
 
     @Override
     public String getScheme() {
-        return exchange.getRequestScheme();
+        return getExchange().getRequestScheme();
     }
 
     @Override
     public String getFullRequestURL() {
-        String full = exchange.getRequestURL();
-        if (CommonHelper.isNotBlank(exchange.getQueryString())) {
-            full = full + "?" + exchange.getQueryString();
+        String full = getExchange().getRequestURL();
+        if (CommonHelper.isNotBlank(getExchange().getQueryString())) {
+            full = full + "?" + getExchange().getQueryString();
         }
         return full;
     }
 
     @Override
     public String getRemoteAddr() {
-        return exchange.getSourceAddress().getAddress().getHostAddress();
+        return getExchange().getSourceAddress().getAddress().getHostAddress();
     }
 
     @Override
@@ -123,27 +122,27 @@ public class UndertowWebContext implements WebContext {
         newCookie.setMaxAge(cookie.getMaxAge() < 0 ? null : cookie.getMaxAge());
         newCookie.setSecure(cookie.isSecure());
         newCookie.setHttpOnly(cookie.isHttpOnly());
-        exchange.setResponseCookie(newCookie);
+        getExchange().setResponseCookie(newCookie);
     }
 
     @Override
     public void setRequestAttribute(final String name, final Object value) {
-        RequestAttributesMap.getOrInitialize(exchange).put(name, value);
+        RequestAttributesMap.getOrInitialize(getExchange()).put(name, value);
     }
 
     @Override
     public String getPath() {
-        return exchange.getRequestPath();
+        return getExchange().getRequestPath();
     }
 
     @Override
     public void setResponseContentType(final String content) {
-        exchange.getResponseHeaders().add(Headers.CONTENT_TYPE, content);
+        getExchange().getResponseHeaders().add(Headers.CONTENT_TYPE, content);
     }
 
     @Override
     public Collection<Cookie> getRequestCookies() {
-        final Collection<io.undertow.server.handlers.Cookie> uCookies = exchange.getRequestCookies().values();
+        final Collection<io.undertow.server.handlers.Cookie> uCookies = getExchange().getRequestCookies().values();
         final List<Cookie> cookies = new ArrayList<>(uCookies.size());
         for (final io.undertow.server.handlers.Cookie uCookie : uCookies) {
             final Cookie cookie = new Cookie(uCookie.getName(), uCookie.getValue());
@@ -160,11 +159,11 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public Optional<Object> getRequestAttribute(final String name) {
-        return Optional.ofNullable(RequestAttributesMap.getOrInitialize(exchange).get(name));
+        return Optional.ofNullable(RequestAttributesMap.getOrInitialize(getExchange()).get(name));
     }
 
     @Override
     public boolean isSecure() {
-        return exchange.isSecure();
+        return getExchange().isSecure();
     }
 }

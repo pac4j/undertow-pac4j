@@ -1,11 +1,11 @@
 package org.pac4j.undertow.context;
 
+import java.util.Optional;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.session.*;
 import org.pac4j.core.context.WebContext;
+import org.pac4j.core.context.session.PrefixedSessionStore;
 import org.pac4j.core.context.session.SessionStore;
-
-import java.util.Optional;
 
 /**
  * Specific session store for Undertow relying on the {@link SessionManager} and {@link SessionConfig}.
@@ -13,15 +13,17 @@ import java.util.Optional;
  * @author Jerome Leleu
  * @since 1.1.0
  */
-public class UndertowSessionStore implements SessionStore {
+public class UndertowSessionStore extends PrefixedSessionStore {
 
-    private SessionManager sessionManager;
-    private SessionConfig sessionConfig;
+    private final HttpServerExchange exchange;
+    private final SessionManager sessionManager;
+    private final SessionConfig sessionConfig;
     private Session session;
 
     private String sessionCookieName = "JSESSIONID";
 
     public UndertowSessionStore(final HttpServerExchange exchange) {
+        this.exchange = exchange;
         this.sessionManager = exchange.getAttachment(SessionManager.ATTACHMENT_KEY);
         this.sessionConfig = exchange.getAttachment(SessionConfig.ATTACHMENT_KEY);
     }
@@ -49,27 +51,20 @@ public class UndertowSessionStore implements SessionStore {
 
     @Override
     public Optional<String> getSessionId(final WebContext context, final boolean createSession) {
-        final Optional<Session> session = getSession(context, createSession);
-        if (session.isPresent()) {
-            return Optional.of(session.get().getId());
-        } else {
-            return Optional.empty();
-        }
+        final var session = getSession(context, createSession);
+        return session.map(Session::getId);
     }
 
 
     @Override
     public Optional<Object> get(final WebContext context, final String key) {
-        final Optional<Session> session = getSession(context, false);
-        if (session.isEmpty()) {
-            return Optional.empty();
-        }
-        return Optional.ofNullable(session.get().getAttribute(key));
+        final var session = getSession(context, false);
+        return session.map(value -> value.getAttribute(key));
     }
 
     @Override
     public void set(final WebContext context, final String key, final Object value) {
-        final Optional<Session> session = getSession(context, true);
+        final var session = getSession(context, true);
         session.get().setAttribute(key, value);
     }
 
@@ -84,9 +79,7 @@ public class UndertowSessionStore implements SessionStore {
     @Override
     public boolean destroySession(final WebContext context) {
         final Optional<Session> session = getSession(context, false);
-        if (session.isPresent()) {
-            session.get().invalidate(((UndertowWebContext) context).getExchange());
-        }
+        session.ifPresent(value -> value.invalidate(((UndertowWebContext) context).getExchange()));
         return true;
     }
 
@@ -98,7 +91,10 @@ public class UndertowSessionStore implements SessionStore {
     @Override
     public Optional<SessionStore> buildFromTrackableSession(final WebContext context, final Object trackableSession) {
         if (trackableSession != null) {
-            return Optional.of(new UndertowSessionStore(((UndertowWebContext) context).getExchange(), (Session) trackableSession));
+            var undertowSession = (Session) trackableSession;
+            var sessionStore = new UndertowSessionStore(exchange, undertowSession);
+            sessionStore.setPrefix(this.getPrefix());
+            return Optional.of(sessionStore);
         } else {
             return Optional.empty();
         }

@@ -19,18 +19,15 @@ import java.util.Set;
 public class Pac4jAccount implements Account {
 
     private final List<UserProfile> profiles;
-
-    private Set<String> roles;
-    private Principal principal;
+    private final Set<String> roles;
+    private final Principal principal;
 
     public Pac4jAccount(final LinkedHashMap<String, UserProfile> profiles) {
         this.roles = new HashSet<>();
         this.profiles = ProfileHelper.flatIntoAProfileList(profiles);
         for (final UserProfile profile : this.profiles) {
             final Set<String> roles = profile.getRoles();
-            for (final String role : roles) {
-                this.roles.add(role);
-            }
+            this.roles.addAll(roles);
         }
         final UserProfile profile = ProfileHelper.flatIntoOneProfile(this.profiles).get();
         this.principal = () -> profile.getId();

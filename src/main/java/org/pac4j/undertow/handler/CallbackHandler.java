@@ -2,21 +2,14 @@ package org.pac4j.undertow.handler;
 
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
-
 import io.undertow.server.handlers.BlockingHandler;
 import io.undertow.server.handlers.form.EagerFormParsingHandler;
 import io.undertow.server.handlers.form.FormEncodedDataDefinition;
 import io.undertow.server.handlers.form.FormParserFactory;
+import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
-import org.pac4j.core.context.WebContext;
-import org.pac4j.core.context.session.SessionStore;
 import org.pac4j.core.engine.CallbackLogic;
-import org.pac4j.core.engine.DefaultCallbackLogic;
-import org.pac4j.core.http.adapter.HttpActionAdapter;
-import org.pac4j.core.util.FindBest;
-import org.pac4j.undertow.context.UndertowContextFactory;
-import org.pac4j.undertow.context.UndertowSessionStore;
-import org.pac4j.undertow.http.UndertowHttpActionAdapter;
+import org.pac4j.undertow.context.UndertowParameters;
 
 /**
  * <p>This filter finishes the login process for an indirect client.</p>
@@ -63,12 +56,14 @@ public class CallbackHandler implements HttpHandler {
 
     @Override
     public void handleRequest(final HttpServerExchange exchange) {
-        final SessionStore bestSessionStore = FindBest.sessionStore(null, config, new UndertowSessionStore(exchange));
-        final HttpActionAdapter bestAdapter = FindBest.httpActionAdapter(null, config, UndertowHttpActionAdapter.INSTANCE);
-        final CallbackLogic bestLogic = FindBest.callbackLogic(callbackLogic, config, DefaultCallbackLogic.INSTANCE);
-
-        final WebContext context = FindBest.webContextFactory(null, config, UndertowContextFactory.INSTANCE).newContext(exchange);
-        bestLogic.perform(context, bestSessionStore, config, bestAdapter, this.defaultUrl, this.renewSession, this.defaultClient);
+        FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
+        config.getCallbackLogic().perform(
+                this.config,
+                this.defaultUrl,
+                this.renewSession,
+                config.getClients().getClients().get(0).getName(),
+                new UndertowParameters(exchange)
+        );
     }
 
     protected CallbackLogic getCallbackLogic() {
