@@ -16,12 +16,11 @@ import org.pac4j.undertow.profile.UndertowProfileManager;
  * @since 1.2.0
  */
 public class SecurityHandler implements HttpHandler {
-    private static final String AUTH_GRANTED = "AUTH_GRANTED";
 
     private SecurityLogic securityLogic;
 
-    private HttpHandler toWrap;
-    
+    private final HttpHandler toWrap;
+
     private final Config config;
 
     private String clients;
@@ -66,23 +65,17 @@ public class SecurityHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
-        // adapted from https://github.com/pac4j/javalin-pac4j/blob/6.0.x/src/main/java/org/pac4j/javalin/SecurityHandler.java#L47-L60
-        var result = config.getSecurityLogic().perform(
+        config.getSecurityLogic().perform(
                 this.config,
-                (ctx, store, profiles) -> AUTH_GRANTED,
+                (ctx, store, profiles) -> {
+                    this.toWrap.handleRequest(exchange);
+                    return null;
+                },
                 this.clients,
                 this.authorizers,
                 this.matchers,
                 new UndertowParameters(exchange)
         );
-        // TODO else reject with 401 or?
-        if (result == AUTH_GRANTED) {
-            this.toWrap.handleRequest(exchange);
-        }
-        /*if (result != AUTH_GRANTED) {
-            // Same logic javalin natively uses for skipping future tasks after a redirect in a before handler
-            ((JavalinServletContext) javalinCtx).getTasks().removeIf(Task::getSkipIfExceptionOccurred);
-        }*/
     }
 
     protected SecurityLogic getSecurityLogic() {

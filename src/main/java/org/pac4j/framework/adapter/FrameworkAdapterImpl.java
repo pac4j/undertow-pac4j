@@ -6,7 +6,11 @@ import org.pac4j.undertow.context.UndertowContextFactory;
 import org.pac4j.undertow.context.UndertowSessionStoreFactory;
 import org.pac4j.undertow.http.UndertowHttpActionAdapter;
 
-// found on classpath by pac4j
+/**
+ * This class is found on classpath by pac4j
+ * @author Sakib Hadziavdic
+ * @since 6.0.0
+ */
 public class FrameworkAdapterImpl extends DefaultFrameworkAdapter {
 
     @Override

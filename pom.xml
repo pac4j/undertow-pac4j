@@ -118,7 +118,7 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>run-sportbugs</id>
+                        <id>run-spotbugs</id>
                         <phase>compile</phase>
                         <goals>
                             <goal>check</goal>

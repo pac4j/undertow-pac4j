@@ -6,10 +6,10 @@ import org.pac4j.core.context.session.SessionStoreFactory;
 import org.pac4j.core.exception.TechnicalException;
 
 /**
- * Build a JEE session store from parameters.
+ * Build an Undertow session store from parameters.
  *
- * @author Jerome LELEU
- * @since 5.5.0
+ * @author Sakib Hadziavdic
+ * @since 6.0.0
  */
 public class UndertowSessionStoreFactory implements SessionStoreFactory {
 
