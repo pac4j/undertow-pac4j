@@ -27,11 +27,9 @@ public class UndertowHttpActionAdapter implements HttpActionAdapter {
             final HttpServerExchange exchange = ((UndertowWebContext) context).getExchange();
             exchange.setStatusCode(code);
 
-            if (action instanceof WithLocationAction) {
-                final WithLocationAction withLocationAction = (WithLocationAction) action;
+            if (action instanceof WithLocationAction withLocationAction) {
                 context.setResponseHeader(HttpConstants.LOCATION_HEADER, withLocationAction.getLocation());
-            } else if (action instanceof WithContentAction) {
-                final WithContentAction withContentAction = (WithContentAction) action;
+            } else if (action instanceof WithContentAction withContentAction) {
                 final String content = withContentAction.getContent();
                 exchange.getResponseSender().send(content);
             }

@@ -25,7 +25,7 @@ public class UndertowHelper {
      * @param profiles the linked hashmap of profiles
      */
     public static void populateContext(final UndertowWebContext context, final LinkedHashMap<String, UserProfile> profiles) {
-        if (profiles != null && profiles.size() > 0) {
+        if (profiles != null && !profiles.isEmpty()) {
             final HttpServerExchange exchange = context.getExchange();
             SecurityContext securityContext = exchange.getSecurityContext();
             if (securityContext == null) {
