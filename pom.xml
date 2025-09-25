@@ -120,12 +120,13 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.2.3</version>
+                <version>4.9.6.0</version>
                 <configuration>
                     <effort>Low</effort>
                     <threshold>Max</threshold>
                     <failOnError>true</failOnError>
                     <includeTests>true</includeTests>
+                    <excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
                 </configuration>
                 <executions>
                     <execution>
