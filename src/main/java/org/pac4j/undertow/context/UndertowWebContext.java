@@ -122,6 +122,7 @@ public class UndertowWebContext implements WebContext {
         newCookie.setMaxAge(cookie.getMaxAge() < 0 ? null : cookie.getMaxAge());
         newCookie.setSecure(cookie.isSecure());
         newCookie.setHttpOnly(cookie.isHttpOnly());
+        newCookie.setSameSiteMode(cookie.getSameSitePolicy());
         getExchange().setResponseCookie(newCookie);
     }
 
