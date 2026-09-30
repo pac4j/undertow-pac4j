@@ -3,6 +3,7 @@ package org.pac4j.undertow.context;
 import java.util.Optional;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.session.*;
+import io.undertow.util.AttachmentKey;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.PrefixedSessionStore;
 import org.pac4j.core.context.session.SessionStore;
@@ -14,6 +15,9 @@ import org.pac4j.core.context.session.SessionStore;
  * @since 1.1.0
  */
 public class UndertowSessionStore extends PrefixedSessionStore {
+
+    /** The session renewed during the current request: its new identifier cannot be found from the request anymore. */
+    private static final AttachmentKey<Session> RENEWED_SESSION = AttachmentKey.create(Session.class);
 
     private final HttpServerExchange exchange;
     private final SessionManager sessionManager;
@@ -38,6 +42,10 @@ public class UndertowSessionStore extends PrefixedSessionStore {
         if (session != null) {
             return Optional.of(session);
         }
+        final Session renewedSession = context.getExchange().getAttachment(RENEWED_SESSION);
+        if (renewedSession != null) {
+            return Optional.of(renewedSession);
+        }
         final Session session = sessionManager.getSession(context.getExchange(), sessionConfig);
         if (session != null) {
             return Optional.of(session);
@@ -59,13 +67,13 @@ public class UndertowSessionStore extends PrefixedSessionStore {
     @Override
     public Optional<Object> get(final WebContext context, final String key) {
         final var session = getSession(context, false);
-        return session.map(value -> value.getAttribute(key));
+        return session.map(value -> value.getAttribute(computePrefixedKey(key)));
     }
 
     @Override
     public void set(final WebContext context, final String key, final Object value) {
         final var session = getSession(context, true);
-        session.get().setAttribute(key, value);
+        session.get().setAttribute(computePrefixedKey(key), value);
     }
 
     public SessionManager getSessionManager() {
@@ -78,14 +86,20 @@ public class UndertowSessionStore extends PrefixedSessionStore {
 
     @Override
     public boolean destroySession(final WebContext context) {
+        final HttpServerExchange exchange = ((UndertowWebContext) context).getExchange();
         final Optional<Session> session = getSession(context, false);
-        session.ifPresent(value -> value.invalidate(((UndertowWebContext) context).getExchange()));
+        session.ifPresent(value -> {
+            if (exchange.getAttachment(RENEWED_SESSION) == value) {
+                exchange.removeAttachment(RENEWED_SESSION);
+            }
+            value.invalidate(exchange);
+        });
         return true;
     }
 
     @Override
     public Optional<Object> getTrackableSession(final WebContext context) {
-        return Optional.ofNullable(getSession(context, false));
+        return getSession(context, false).map(Object.class::cast);
     }
 
     @Override
@@ -105,26 +119,30 @@ public class UndertowSessionStore extends PrefixedSessionStore {
         final UndertowWebContext context = (UndertowWebContext) webContext;
         final HttpServerExchange exchange = context.getExchange();
         final Session session = getSession(context, true).get();
-        final String[] attributeNames = session.getAttributeNames().toArray(new String[0]);
-        final Object[] attributeValues = new Object[attributeNames.length];
-        for (int i = 0; i < attributeNames.length; i++) {
-            attributeValues[i] = session.getAttribute(attributeNames[i]);
+        // the session manager generates a new identifier (keeping the attributes) and sends it via the session config
+        if (session.changeSessionId(exchange, sessionConfig) == null) {
+            return false;
         }
-
-        context.getExchange().getRequestCookies().remove(sessionCookieName);
-        session.invalidate(exchange);
-
-        final Session newSession = sessionManager.createSession(exchange, sessionConfig);
-        for (int i = 0; i < attributeNames.length; i++) {
-            newSession.setAttribute(attributeNames[i], attributeValues[i]);
+        if (this.session == null) {
+            exchange.putAttachment(RENEWED_SESSION, session);
         }
         return true;
     }
 
+    /**
+     * @return the session cookie name
+     * @deprecated no longer used: the session renewal relies on {@link Session#changeSessionId(HttpServerExchange, SessionConfig)}
+     */
+    @Deprecated(since = "6.1.0", forRemoval = true)
     public String getSessionCookieName() {
         return sessionCookieName;
     }
 
+    /**
+     * @param sessionCookieName the session cookie name
+     * @deprecated no longer used: the session renewal relies on {@link Session#changeSessionId(HttpServerExchange, SessionConfig)}
+     */
+    @Deprecated(since = "6.1.0", forRemoval = true)
     public void setSessionCookieName(final String sessionCookieName) {
         this.sessionCookieName = sessionCookieName;
     }
