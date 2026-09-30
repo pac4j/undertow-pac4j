@@ -6,7 +6,7 @@
   <a href="https://central.sonatype.com/artifact/org.pac4j/undertow-pac4j"><img src="https://img.shields.io/maven-central/v/org.pac4j/undertow-pac4j?label=Maven%20Central" alt="Maven Central" /></a>
   <a href="https://github.com/pac4j/undertow-pac4j/actions/workflows/ci.yml"><img src="https://github.com/pac4j/undertow-pac4j/actions/workflows/ci.yml/badge.svg" alt="Build status" /></a>
   <img src="https://img.shields.io/badge/Java-17%2B-blue" alt="Java 17+" />
-  <img src="https://img.shields.io/badge/Undertow-2.0%20to%202.4-blue" alt="Undertow 2.0 to 2.4" />
+  <img src="https://img.shields.io/badge/Undertow-2.4-blue" alt="Undertow 2.4" />
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img src="https://img.shields.io/badge/license-Apache%202.0-blue" alt="Apache 2 license" /></a>
 </p>
 
@@ -14,7 +14,7 @@
 > If it is useful to you, please ⭐ **[star pac4j on GitHub](https://github.com/pac4j/pac4j)**: it helps other developers discover it!
 
 The `undertow-pac4j` project is an **easy and powerful security library for Undertow** web applications which supports authentication and authorization, but also application logout and advanced features like CSRF protection.
-It's based on Java 17, Undertow 2 (from v2.0 to v2.4) and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v6**. It's available under the Apache 2 license.
+It's based on Java 17, Undertow 2.4 and on the **[pac4j security engine](https://github.com/pac4j/pac4j) v6**. It's available under the Apache 2 license.
 
 [**Main concepts and components:**](https://www.pac4j.org/docs/main-concepts-and-components.html)
 
@@ -37,7 +37,7 @@ It's based on Java 17, Undertow 2 (from v2.0 to v2.4) and on the **[pac4j securi
 
 ## Quick start (OpenID Connect)
 
-Add Undertow (from v2.0 to v2.4, it's a `provided` dependency), `undertow-pac4j` and the OpenID Connect module:
+Add Undertow 2.4 (it's a `provided` dependency), `undertow-pac4j` and the OpenID Connect module:
 
 ```xml
 <dependency>
