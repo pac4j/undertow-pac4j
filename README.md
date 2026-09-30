@@ -15,7 +15,7 @@ It's based on Java 17, Undertow 2 and on the **[pac4j security engine](https://g
 
 &#9656; Roles / permissions - Anonymous / remember-me / (fully) authenticated - Profile type, attribute -  CORS - CSRF - Security headers - IP address, HTTP method
 
-3) A [**matcher**](https://www.pac4j.org/docs/matchers.html) defines whether the `SecurityFilter` must be applied and can be used for additional web processing
+3) A [**matcher**](https://www.pac4j.org/docs/matchers.html) defines whether the `SecurityHandler` must be applied and can be used for additional web processing
 
 4) The `SecurityHandler` protects an url by checking that the user is authenticated and that the authorizations are valid, according to the clients and authorizers configuration. If the user is not authenticated, it performs authentication for direct clients or starts the login process for indirect clients
 
@@ -48,7 +48,7 @@ The demo webapp: [undertow-pac4j-demo](https://github.com/pac4j/undertow-pac4j-d
 
 The latest released version is the [![Maven Central](https://img.shields.io/maven-central/v/org.pac4j/undertow-pac4j.svg)](https://repo1.maven.org/maven2/org/pac4j/undertow-pac4j). The [next version](https://github.com/pac4j/undertow-pac4j/wiki/Next-version) is under development.
 
-See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-Notes).
+See the [release notes](https://github.com/pac4j/undertow-pac4j/wiki/Release-notes).
 
 See the [migration guide](https://github.com/pac4j/undertow-pac4j/wiki/Migration-guide) as well.
 
