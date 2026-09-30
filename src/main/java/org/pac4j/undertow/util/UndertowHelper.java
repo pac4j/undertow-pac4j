@@ -3,7 +3,11 @@ package org.pac4j.undertow.util;
 import io.undertow.security.api.AuthenticationMode;
 import io.undertow.security.api.SecurityContext;
 import io.undertow.security.impl.SecurityContextFactoryImpl;
+import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
+import io.undertow.server.handlers.form.EagerFormParsingHandler;
+import io.undertow.server.handlers.form.FormEncodedDataDefinition;
+import io.undertow.server.handlers.form.FormParserFactory;
 import org.pac4j.core.profile.UserProfile;
 import org.pac4j.undertow.account.Pac4jAccount;
 import org.pac4j.undertow.context.UndertowWebContext;
@@ -34,5 +38,16 @@ public class UndertowHelper {
             securityContext.authenticationComplete(new Pac4jAccount(profiles), "PAC4J_ACCOUNT", false);
             exchange.setSecurityContext(securityContext);
         }
+    }
+
+    /**
+     * Wrap a handler so that the URL encoded form parameters are parsed before it is called.
+     *
+     * @param next the handler to wrap
+     * @return the form parsing handler
+     */
+    public static HttpHandler buildFormParsingHandler(final HttpHandler next) {
+        final FormParserFactory factory = FormParserFactory.builder().addParser(new FormEncodedDataDefinition()).build();
+        return new EagerFormParsingHandler(factory).setNext(next);
     }
 }

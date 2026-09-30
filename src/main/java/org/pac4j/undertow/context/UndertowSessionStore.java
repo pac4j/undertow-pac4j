@@ -7,6 +7,7 @@ import io.undertow.util.AttachmentKey;
 import org.pac4j.core.context.WebContext;
 import org.pac4j.core.context.session.PrefixedSessionStore;
 import org.pac4j.core.context.session.SessionStore;
+import org.pac4j.core.exception.TechnicalException;
 
 /**
  * Specific session store for Undertow relying on the {@link SessionManager} and {@link SessionConfig}.
@@ -46,6 +47,13 @@ public class UndertowSessionStore extends PrefixedSessionStore {
         if (renewedSession != null) {
             return Optional.of(renewedSession);
         }
+        if (sessionManager == null || sessionConfig == null) {
+            if (createSession) {
+                throw new TechnicalException("No Undertow session manager or session config found in the exchange: "
+                        + "the handlers must be wrapped by a SessionAttachmentHandler");
+            }
+            return Optional.empty();
+        }
         final Session session = sessionManager.getSession(context.getExchange(), sessionConfig);
         if (session != null) {
             return Optional.of(session);
@@ -72,8 +80,9 @@ public class UndertowSessionStore extends PrefixedSessionStore {
 
     @Override
     public void set(final WebContext context, final String key, final Object value) {
-        final var session = getSession(context, true);
-        session.get().setAttribute(computePrefixedKey(key), value);
+        // no need to create a session to remove an attribute
+        final var session = getSession(context, value != null);
+        session.ifPresent(s -> s.setAttribute(computePrefixedKey(key), value));
     }
 
     public SessionManager getSessionManager() {

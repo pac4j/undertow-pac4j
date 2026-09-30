@@ -4,6 +4,8 @@ import io.undertow.security.idm.Account;
 import org.pac4j.core.profile.ProfileHelper;
 import org.pac4j.core.profile.UserProfile;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.security.Principal;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -18,6 +20,9 @@ import java.util.Set;
  */
 public class Pac4jAccount implements Account {
 
+    @Serial
+    private static final long serialVersionUID = 2092398417475516512L;
+
     private final List<UserProfile> profiles;
     private final Set<String> roles;
     private final Principal principal;
@@ -30,7 +35,7 @@ public class Pac4jAccount implements Account {
             this.roles.addAll(roles);
         }
         final UserProfile profile = ProfileHelper.flatIntoOneProfile(this.profiles).get();
-        this.principal = () -> profile.getId();
+        this.principal = new Pac4jPrincipal(profile.getId());
     }
 
     @Override
@@ -59,5 +64,18 @@ public class Pac4jAccount implements Account {
      */
     public List<UserProfile> getProfiles() {
         return this.profiles;
+    }
+
+    /**
+     * Serializable principal named after the identifier of the authenticated user.
+     *
+     * @param name the principal name
+     */
+    private record Pac4jPrincipal(String name) implements Principal, Serializable {
+
+        @Override
+        public String getName() {
+            return name;
+        }
     }
 }

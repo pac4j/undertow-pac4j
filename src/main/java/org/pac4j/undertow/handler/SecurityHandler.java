@@ -7,7 +7,7 @@ import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.SecurityLogic;
 import org.pac4j.undertow.context.UndertowParameters;
-import org.pac4j.undertow.profile.UndertowProfileManager;
+import org.pac4j.undertow.util.UndertowHelper;
 
 /**
  * <p>This filter protects an URL.</p>
@@ -35,7 +35,6 @@ public class SecurityHandler implements HttpHandler {
         this.clients = clients;
         this.authorizers = authorizers;
         this.matchers = matchers;
-        config.setProfileManagerFactory(UndertowProfileManager::new);
     }
 
     public static HttpHandler build(final HttpHandler toWrap, Config config) {
@@ -59,7 +58,7 @@ public class SecurityHandler implements HttpHandler {
         if (securityLogic != null) {
             securityHandler.setSecurityLogic(securityLogic);
         }
-        return new BlockingHandler(securityHandler);
+        return new BlockingHandler(UndertowHelper.buildFormParsingHandler(securityHandler));
     }
 
     @Override

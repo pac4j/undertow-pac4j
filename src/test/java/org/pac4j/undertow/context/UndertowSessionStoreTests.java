@@ -3,12 +3,15 @@ package org.pac4j.undertow.context;
 import io.undertow.Undertow;
 import io.undertow.server.session.InMemorySessionManager;
 import io.undertow.server.session.Session;
+import io.undertow.server.session.SessionManager;
 import io.undertow.server.session.SessionAttachmentHandler;
+import io.undertow.server.session.SessionConfig;
 import io.undertow.server.session.SessionCookieConfig;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.pac4j.core.context.CallContext;
+import org.pac4j.core.exception.TechnicalException;
 import org.pac4j.core.logout.handler.DefaultSessionLogoutHandler;
 import org.pac4j.core.profile.ProfileManager;
 import org.pac4j.core.store.Store;
@@ -179,6 +182,31 @@ class UndertowSessionStoreTests {
         assertNull(sessionManager.getSession(oldSessionId));
         assertEquals(VALUE, call(newSessionId, (context, store) -> store.get(context, KEY).orElse(NONE).toString()).body());
         assertEquals(NONE, call(oldSessionId, (context, store) -> store.get(context, KEY).orElse(NONE).toString()).body());
+    }
+
+    @Test
+    void removingAnAttributeDoesNotCreateASession() throws Exception {
+        final Response response = call(null, (context, store) -> {
+            store.set(context, KEY, null);
+            return store.getSessionId(context, false).orElse(NONE);
+        });
+        assertEquals(NONE, response.body());
+        assertEquals(Optional.empty(), response.sessionId());
+    }
+
+    @Test
+    void withoutSessionManager() throws Exception {
+        final Response response = call(null, (context, store) -> {
+            // simulate the absence of SessionAttachmentHandler
+            context.getExchange().removeAttachment(SessionManager.ATTACHMENT_KEY);
+            context.getExchange().removeAttachment(SessionConfig.ATTACHMENT_KEY);
+            final UndertowSessionStore noSessionStore = new UndertowSessionStore(context.getExchange());
+            noSessionStore.set(context, KEY, null);
+            final TechnicalException e = assertThrows(TechnicalException.class, () -> noSessionStore.set(context, KEY, VALUE));
+            return noSessionStore.get(context, KEY).orElse(NONE) + "|" + noSessionStore.getSessionId(context, false).orElse(NONE)
+                    + "|" + noSessionStore.destroySession(context) + "|" + e.getMessage().contains("SessionAttachmentHandler");
+        });
+        assertEquals(NONE + "|" + NONE + "|true|true", response.body());
     }
 
     private static final class MapStore implements Store<String, Object> {

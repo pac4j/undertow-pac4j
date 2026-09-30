@@ -3,13 +3,11 @@ package org.pac4j.undertow.handler;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.BlockingHandler;
-import io.undertow.server.handlers.form.EagerFormParsingHandler;
-import io.undertow.server.handlers.form.FormEncodedDataDefinition;
-import io.undertow.server.handlers.form.FormParserFactory;
 import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.CallbackLogic;
 import org.pac4j.undertow.context.UndertowParameters;
+import org.pac4j.undertow.util.UndertowHelper;
 
 /**
  * <p>This filter finishes the login process for an indirect client.</p>
@@ -49,16 +47,13 @@ public class CallbackHandler implements HttpHandler {
 
     public static HttpHandler build(final Config config, final String defaultUrl, final Boolean renewSession,
                                     final String defaultClient, final CallbackLogic callbackLogic) {
-        final FormParserFactory factory = FormParserFactory.builder().addParser(new FormEncodedDataDefinition()).build();
-        final EagerFormParsingHandler formHandler = new EagerFormParsingHandler(factory);
         final CallbackHandler callbackHandler = new CallbackHandler(config, defaultUrl);
         callbackHandler.setRenewSession(renewSession);
         callbackHandler.setDefaultClient(defaultClient);
         if (callbackLogic != null) {
             callbackHandler.setCallbackLogic(callbackLogic);
         }
-        formHandler.setNext(callbackHandler);
-        return new BlockingHandler(formHandler);
+        return new BlockingHandler(UndertowHelper.buildFormParsingHandler(callbackHandler));
     }
 
     @Override

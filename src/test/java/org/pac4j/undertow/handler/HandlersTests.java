@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.pac4j.core.client.direct.AnonymousClient;
 import org.pac4j.core.config.Config;
 import org.pac4j.undertow.context.UndertowParameters;
+import org.pac4j.undertow.context.UndertowWebContext;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -31,12 +32,19 @@ class HandlersTests {
     private final AtomicReference<List<Object>> performArgs = new AtomicReference<>();
 
     private void call(final HttpHandler handler) throws Exception {
+        call(handler, null);
+    }
+
+    private void call(final HttpHandler handler, final String form) throws Exception {
         final Undertow server = Undertow.builder().addHttpListener(0, "localhost").setHandler(handler).build();
         server.start();
         try {
             final InetSocketAddress address = (InetSocketAddress) server.getListenerInfo().get(0).getAddress();
-            final HttpRequest request = HttpRequest.newBuilder(URI.create("http://localhost:" + address.getPort() + "/")).build();
-            final HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            final HttpRequest.Builder request = HttpRequest.newBuilder(URI.create("http://localhost:" + address.getPort() + "/"));
+            if (form != null) {
+                request.header("Content-Type", "application/x-www-form-urlencoded").POST(HttpRequest.BodyPublishers.ofString(form));
+            }
+            final HttpResponse<String> response = HttpClient.newHttpClient().send(request.build(), HttpResponse.BodyHandlers.ofString());
             assertEquals(200, response.statusCode(), response.body());
         } finally {
             server.stop();
@@ -92,6 +100,18 @@ class HandlersTests {
                     return null;
                 }));
         assertEquals(Arrays.asList(config, "clients", "authorizers", "matchers"), recordedArgs());
+    }
+
+    @Test
+    void securityHandlerParsesFormParameters() throws Exception {
+        call(SecurityHandler.build(exchange -> { }, new Config(), "clients", null, null,
+                (cfg, adapter, clients, authorizers, matchers, params) -> {
+                    final UndertowWebContext context = new UndertowWebContext(((UndertowParameters) params).exchange());
+                    performArgs.set(Arrays.asList(context.getRequestParameter("username").orElse(null),
+                            context.getRequestParameters().get("password")[0], params));
+                    return null;
+                }), "username=jerome&password=secret");
+        assertEquals(Arrays.asList("jerome", "secret"), recordedArgs());
     }
 
     @Test
