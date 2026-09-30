@@ -21,7 +21,8 @@ public class UndertowProfileManager extends ProfileManager {
         super(context, sessionStore);
     }
 
-    protected LinkedHashMap<String, UserProfile> retrieveAll(boolean readFromSession) {
+    @Override
+    protected LinkedHashMap<String, UserProfile> retrieveAll(final boolean readFromSession) {
 
         final LinkedHashMap<String, UserProfile> profiles = super.retrieveAll(readFromSession);
         UndertowHelper.populateContext((UndertowWebContext) context, profiles);

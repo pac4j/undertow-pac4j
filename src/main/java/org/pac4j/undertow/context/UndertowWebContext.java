@@ -8,11 +8,9 @@ import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import org.pac4j.core.context.Cookie;
 import org.pac4j.core.context.WebContext;
-import org.pac4j.core.util.CommonHelper;
 
 /**
  * The webcontext implementation for Undertow.
@@ -34,33 +32,51 @@ public class UndertowWebContext implements WebContext {
         return exchange;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Like in the servlet API, the query string parameters come before the form parameters.
+     */
     @Override
     public Optional<String> getRequestParameter(final String name) {
-        var param = getExchange().getQueryParameters().get(name);
-        if (param != null) {
-            return Optional.ofNullable(param.peek());
-        } else {
-            FormData data = getExchange().getAttachment(FormDataParser.FORM_DATA);
-            if (data != null && data.get(name) != null) {
-                return Optional.ofNullable(data.get(name).peek().getValue());
+        final Deque<String> values = getExchange().getQueryParameters().get(name);
+        if (values != null && !values.isEmpty()) {
+            return Optional.ofNullable(values.peek());
+        }
+        final FormData data = getExchange().getAttachment(FormDataParser.FORM_DATA);
+        if (data != null && data.contains(name)) {
+            for (final FormData.FormValue value : data.get(name)) {
+                if (!value.isFileItem()) {
+                    return Optional.ofNullable(value.getValue());
+                }
             }
         }
         return Optional.empty();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Like in the servlet API, the values of the query string and of the form are merged (query string first).
+     */
     @Override
     public Map<String, String[]> getRequestParameters() {
-        var params = getExchange().getQueryParameters();
-        var map = new HashMap<String, String[]>();
-        for (var entry : params.entrySet()) {
-            map.put(entry.getKey(), entry.getValue().toArray(new String[entry.getValue().size()]));
+        final Map<String, List<String>> values = new LinkedHashMap<>();
+        for (final var entry : getExchange().getQueryParameters().entrySet()) {
+            values.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(entry.getValue());
         }
-        FormData data = getExchange().getAttachment(FormDataParser.FORM_DATA);
+        final FormData data = getExchange().getAttachment(FormDataParser.FORM_DATA);
         if (data != null) {
-            for (String key : data) {
-                map.put(key, data.get(key).stream().map(f -> f.getValue()).collect(Collectors.toList()).toArray(new String[data.get(key).size()]));
+            for (final String key : data) {
+                for (final FormData.FormValue value : data.get(key)) {
+                    if (!value.isFileItem()) {
+                        values.computeIfAbsent(key, k -> new ArrayList<>()).add(value.getValue());
+                    }
+                }
             }
         }
+        final Map<String, String[]> map = new HashMap<>();
+        values.forEach((key, list) -> map.put(key, list.toArray(new String[0])));
         return map;
     }
 
@@ -101,11 +117,12 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public String getFullRequestURL() {
-        String full = getExchange().getRequestURL();
-        if (CommonHelper.isNotBlank(getExchange().getQueryString())) {
-            full = full + "?" + getExchange().getQueryString();
+        final String url = getExchange().getRequestURL();
+        final String queryString = getExchange().getQueryString();
+        if (queryString != null && !queryString.isBlank()) {
+            return url + "?" + queryString;
         }
-        return full;
+        return url;
     }
 
     @Override
@@ -138,14 +155,13 @@ public class UndertowWebContext implements WebContext {
 
     @Override
     public void setResponseContentType(final String content) {
-        getExchange().getResponseHeaders().add(Headers.CONTENT_TYPE, content);
+        getExchange().getResponseHeaders().put(Headers.CONTENT_TYPE, content);
     }
 
     @Override
     public Collection<Cookie> getRequestCookies() {
-        final Collection<io.undertow.server.handlers.Cookie> uCookies = getExchange().getRequestCookies().values();
-        final List<Cookie> cookies = new ArrayList<>(uCookies.size());
-        for (final io.undertow.server.handlers.Cookie uCookie : uCookies) {
+        final List<Cookie> cookies = new ArrayList<>();
+        for (final io.undertow.server.handlers.Cookie uCookie : getExchange().requestCookies()) {
             final Cookie cookie = new Cookie(uCookie.getName(), uCookie.getValue());
             cookie.setComment(uCookie.getComment());
             cookie.setDomain(uCookie.getDomain());

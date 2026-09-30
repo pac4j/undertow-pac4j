@@ -101,6 +101,10 @@ public class UndertowSessionStore extends PrefixedSessionStore {
             if (exchange.getAttachment(RENEWED_SESSION) == value) {
                 exchange.removeAttachment(RENEWED_SESSION);
             }
+            // don't keep a reference to an invalidated tracked session
+            if (this.session == value) {
+                this.session = null;
+            }
             value.invalidate(exchange);
         });
         return true;

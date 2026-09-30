@@ -128,4 +128,16 @@ class HandlersTests {
         call(logoutHandler);
         assertEquals(Arrays.asList(config, DEFAULT_URL, "/.*", true, false, true), recordedArgs());
     }
+
+    @Test
+    void logoutHandlerRunsInABlockingWorkerThread() throws Exception {
+        final LogoutHandler logoutHandler = new LogoutHandler(new Config());
+        logoutHandler.setLogoutLogic((cfg, defaultUrl, logoutUrlPattern, localLogout, destroySession, centralLogout, params) -> {
+            final var exchange = ((UndertowParameters) params).exchange();
+            performArgs.set(Arrays.asList(exchange.isInIoThread(), exchange.isBlocking(), params));
+            return null;
+        });
+        call(logoutHandler);
+        assertEquals(Arrays.asList(false, true), recordedArgs());
+    }
 }

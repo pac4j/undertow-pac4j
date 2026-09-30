@@ -126,6 +126,23 @@ class UndertowSessionStoreTests {
     }
 
     @Test
+    void trackedStoreAfterDestruction() throws Exception {
+        final AtomicReference<Object> trackableSession = new AtomicReference<>();
+        call(null, (context, store) -> {
+            store.set(context, KEY, VALUE);
+            trackableSession.set(store.getTrackableSession(context).orElseThrow());
+            return "ok";
+        });
+
+        final Response response = call(null, (context, store) -> {
+            final var trackedStore = store.buildFromTrackableSession(context, trackableSession.get()).orElseThrow();
+            assertTrue(trackedStore.destroySession(context));
+            return trackedStore.get(context, KEY).orElse(NONE).toString();
+        });
+        assertEquals(NONE, response.body());
+    }
+
+    @Test
     void backChannelLogoutDestroysTheTrackedSession() throws Exception {
         final DefaultSessionLogoutHandler logoutHandler = new DefaultSessionLogoutHandler(new MapStore());
         logoutHandler.setDestroySession(true);

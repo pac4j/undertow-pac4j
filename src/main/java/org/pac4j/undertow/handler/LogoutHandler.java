@@ -45,6 +45,15 @@ public class LogoutHandler implements HttpHandler {
 
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
+        // like the other handlers (wrapped by a BlockingHandler): the logout logic may perform blocking operations,
+        // like calling the identity provider, so it must not run in the IO thread
+        if (!exchange.isBlocking()) {
+            exchange.startBlocking();
+        }
+        if (exchange.isInIoThread()) {
+            exchange.dispatch(this);
+            return;
+        }
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
         final LogoutLogic logic = logoutLogic != null ? logoutLogic : config.getLogoutLogic();
         logic.perform(
