@@ -2,5 +2,14 @@
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
         "local>pac4j/renovate-config"
+    ],
+    "packageRules": [
+        {
+            "description": "The library is compiled against the oldest supported Undertow version: only allow its patch updates",
+            "matchPackageNames": [
+                "io.undertow:undertow-core"
+            ],
+            "allowedVersions": "<2.1"
+        }
     ]
 }

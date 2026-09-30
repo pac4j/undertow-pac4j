@@ -88,6 +88,35 @@ class UndertowWebContextTests {
     }
 
     @Test
+    void responseCookies() throws Exception {
+        final HttpResponse<String> response = call(HttpRequest.newBuilder(URI.create(baseUrl)), context -> {
+            final Cookie sessionCookie = new Cookie("session", "s");
+            sessionCookie.setMaxAge(-1);
+            context.addResponseCookie(sessionCookie);
+            final Cookie persistentCookie = new Cookie("persistent", "p");
+            persistentCookie.setMaxAge(3600);
+            persistentCookie.setPath("/app");
+            persistentCookie.setSecure(true);
+            persistentCookie.setHttpOnly(true);
+            persistentCookie.setSameSitePolicy("Strict");
+            context.addResponseCookie(persistentCookie);
+            return "ok";
+        });
+        final Map<String, String> setCookies = new TreeMap<>();
+        for (final String header : response.headers().allValues("Set-Cookie")) {
+            setCookies.put(header.substring(0, header.indexOf('=')), header);
+        }
+        final String session = setCookies.get("session");
+        assertTrue(session.startsWith("session=s"), session);
+        assertFalse(session.contains("Max-Age"), session);
+        final String persistent = setCookies.get("persistent");
+        assertTrue(persistent.startsWith("persistent=p"), persistent);
+        for (final String attribute : List.of("Max-Age=3600", "path=/app", "secure", "HttpOnly", "SameSite=Strict")) {
+            assertTrue(persistent.toLowerCase().contains(attribute.toLowerCase()), persistent);
+        }
+    }
+
+    @Test
     void requestCookies() throws Exception {
         final HttpResponse<String> response = call(HttpRequest.newBuilder(URI.create(baseUrl)).header("Cookie", "a=1; b=2"),
                 context -> {

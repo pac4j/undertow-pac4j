@@ -34,10 +34,34 @@ jobs:
       - name: Build with Maven
         run: mvn -B clean install
 
+  # the library is compiled against the oldest supported Undertow version and tested with the newer ones
+  compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        undertow: [ 2.1.8.Final, 2.2.40.Final, 2.3.26.Final, 2.4.3.Final ]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Set up JDK
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6
+        with:
+          java-version: ${{ env.JDK_CURRENT }}
+          distribution: ${{ env.DISTRIBUTION }}
+      - name: Cache Maven dependencies
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Compile
+        run: mvn -B clean test-compile -Dspotbugs.skip -Dpmd.skip
+      - name: Test with Undertow ${{ matrix.undertow }}
+        run: mvn -B surefire:test -Dundertow.version=${{ matrix.undertow }}
+
   deploy:
     if: startsWith(github.ref, 'refs/heads/')
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [build, compatibility]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Set up JDK

@@ -136,10 +136,16 @@ public class UndertowWebContext implements WebContext {
         newCookie.setComment(cookie.getComment());
         newCookie.setDomain(cookie.getDomain());
         newCookie.setPath(cookie.getPath());
-        newCookie.setMaxAge(cookie.getMaxAge() < 0 ? null : cookie.getMaxAge());
+        // a negative max age means a session cookie (no Max-Age attribute): setMaxAge(null) fails with Undertow 2.4
+        if (cookie.getMaxAge() >= 0) {
+            newCookie.setMaxAge(cookie.getMaxAge());
+        }
         newCookie.setSecure(cookie.isSecure());
         newCookie.setHttpOnly(cookie.isHttpOnly());
-        newCookie.setSameSiteMode(cookie.getSameSitePolicy());
+        final String sameSitePolicy = cookie.getSameSitePolicy();
+        if (sameSitePolicy != null && !sameSitePolicy.isBlank()) {
+            newCookie.setSameSiteMode(sameSitePolicy);
+        }
         getExchange().setResponseCookie(newCookie);
     }
 
@@ -158,10 +164,18 @@ public class UndertowWebContext implements WebContext {
         getExchange().getResponseHeaders().put(Headers.CONTENT_TYPE, content);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * It relies on the deprecated {@link HttpServerExchange#getRequestCookies()} method as its replacement
+     * ({@code HttpServerExchange.requestCookies()}) is only available since Undertow 2.2.
+     */
     @Override
+    @SuppressWarnings({"deprecation", "removal"})
     public Collection<Cookie> getRequestCookies() {
-        final List<Cookie> cookies = new ArrayList<>();
-        for (final io.undertow.server.handlers.Cookie uCookie : getExchange().requestCookies()) {
+        final Collection<io.undertow.server.handlers.Cookie> uCookies = getExchange().getRequestCookies().values();
+        final List<Cookie> cookies = new ArrayList<>(uCookies.size());
+        for (final io.undertow.server.handlers.Cookie uCookie : uCookies) {
             final Cookie cookie = new Cookie(uCookie.getName(), uCookie.getValue());
             cookie.setComment(uCookie.getComment());
             cookie.setDomain(uCookie.getDomain());
