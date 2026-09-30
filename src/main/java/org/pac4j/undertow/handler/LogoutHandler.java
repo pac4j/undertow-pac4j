@@ -46,7 +46,8 @@ public class LogoutHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
-        config.getLogoutLogic().perform(
+        final LogoutLogic logic = logoutLogic != null ? logoutLogic : config.getLogoutLogic();
+        logic.perform(
                 this.config,
                 this.defaultUrl,
                 this.logoutUrlPattern,

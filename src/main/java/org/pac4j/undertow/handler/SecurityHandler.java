@@ -65,7 +65,8 @@ public class SecurityHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
-        config.getSecurityLogic().perform(
+        final SecurityLogic logic = securityLogic != null ? securityLogic : config.getSecurityLogic();
+        logic.perform(
                 this.config,
                 (ctx, store, profiles) -> {
                     this.toWrap.handleRequest(exchange);

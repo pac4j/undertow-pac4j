@@ -44,9 +44,16 @@ public class CallbackHandler implements HttpHandler {
     }
 
     public static HttpHandler build(final Config config, final String defaultUrl, final CallbackLogic callbackLogic) {
+        return build(config, defaultUrl, null, null, callbackLogic);
+    }
+
+    public static HttpHandler build(final Config config, final String defaultUrl, final Boolean renewSession,
+                                    final String defaultClient, final CallbackLogic callbackLogic) {
         final FormParserFactory factory = FormParserFactory.builder().addParser(new FormEncodedDataDefinition()).build();
         final EagerFormParsingHandler formHandler = new EagerFormParsingHandler(factory);
         final CallbackHandler callbackHandler = new CallbackHandler(config, defaultUrl);
+        callbackHandler.setRenewSession(renewSession);
+        callbackHandler.setDefaultClient(defaultClient);
         if (callbackLogic != null) {
             callbackHandler.setCallbackLogic(callbackLogic);
         }
@@ -57,11 +64,12 @@ public class CallbackHandler implements HttpHandler {
     @Override
     public void handleRequest(final HttpServerExchange exchange) {
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
-        config.getCallbackLogic().perform(
+        final CallbackLogic logic = callbackLogic != null ? callbackLogic : config.getCallbackLogic();
+        logic.perform(
                 this.config,
                 this.defaultUrl,
                 this.renewSession,
-                config.getClients().getClients().get(0).getName(),
+                this.defaultClient,
                 new UndertowParameters(exchange)
         );
     }
