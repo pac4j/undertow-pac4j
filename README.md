@@ -48,12 +48,12 @@ Add Undertow 2.4 (it's a `provided` dependency), `undertow-pac4j` and the OpenID
 <dependency>
     <groupId>org.pac4j</groupId>
     <artifactId>undertow-pac4j</artifactId>
-    <version>6.1.0</version>
+    <version>6.1.1</version>
 </dependency>
 <dependency>
     <groupId>org.pac4j</groupId>
     <artifactId>pac4j-oidc</artifactId>
-    <version>6.5.9</version>
+    <version>6.6.1</version>
 </dependency>
 ```
 
