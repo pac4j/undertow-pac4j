@@ -23,6 +23,13 @@ import java.util.LinkedHashMap;
 public class UndertowHelper {
 
     /**
+     * Builds the helper.
+     */
+    public UndertowHelper() {
+        // nothing to do
+    }
+
+    /**
      * Populate the security context with the authenticated user profiles.
      *
      * @param context the web context

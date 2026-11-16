@@ -27,12 +27,23 @@ public class UndertowSessionStore extends PrefixedSessionStore {
 
     private String sessionCookieName = "JSESSIONID";
 
+    /**
+     * Builds the session store for an exchange.
+     *
+     * @param exchange the Undertow exchange
+     */
     public UndertowSessionStore(final HttpServerExchange exchange) {
         this.exchange = exchange;
         this.sessionManager = exchange.getAttachment(SessionManager.ATTACHMENT_KEY);
         this.sessionConfig = exchange.getAttachment(SessionConfig.ATTACHMENT_KEY);
     }
 
+    /**
+     * Builds the session store for an exchange and an already known session.
+     *
+     * @param exchange the Undertow exchange
+     * @param session the Undertow session
+     */
     protected UndertowSessionStore(final HttpServerExchange exchange, final Session session) {
         this(exchange);
         this.session = session;
@@ -85,10 +96,20 @@ public class UndertowSessionStore extends PrefixedSessionStore {
         session.ifPresent(s -> s.setAttribute(computePrefixedKey(key), value));
     }
 
+    /**
+     * Gets the Undertow session manager attached to the exchange.
+     *
+     * @return the session manager
+     */
     public SessionManager getSessionManager() {
         return sessionManager;
     }
 
+    /**
+     * Gets the Undertow session configuration attached to the exchange.
+     *
+     * @return the session configuration
+     */
     public SessionConfig getSessionConfig() {
         return sessionConfig;
     }

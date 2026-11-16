@@ -13,6 +13,13 @@ import org.pac4j.core.exception.TechnicalException;
  */
 public class UndertowSessionStoreFactory implements SessionStoreFactory {
 
+    /**
+     * Builds the session store factory.
+     */
+    public UndertowSessionStoreFactory() {
+        // nothing to do
+    }
+
     /** Constant <code>INSTANCE</code> */
     public static final SessionStoreFactory INSTANCE = new UndertowSessionStoreFactory();
     

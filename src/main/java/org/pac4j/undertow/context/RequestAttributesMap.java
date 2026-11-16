@@ -17,6 +17,13 @@ import java.util.HashMap;
  */
 public class RequestAttributesMap extends HashMap<String, Object> {
 
+    /**
+     * Builds an empty map of request attributes.
+     */
+    public RequestAttributesMap() {
+        // nothing to do
+    }
+
     /** Actual singleton attachment key instance */
     private static final AttachmentKey<RequestAttributesMap> ATTACHMENT_KEY =
             AttachmentKey.create(RequestAttributesMap.class);

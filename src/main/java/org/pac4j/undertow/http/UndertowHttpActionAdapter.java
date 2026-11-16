@@ -18,6 +18,16 @@ import org.pac4j.undertow.context.UndertowWebContext;
  */
 public class UndertowHttpActionAdapter implements HttpActionAdapter {
 
+    /**
+     * Builds the HTTP action adapter.
+     */
+    public UndertowHttpActionAdapter() {
+        // nothing to do
+    }
+
+    /**
+     * The singleton instance.
+     */
     public static final UndertowHttpActionAdapter INSTANCE = new UndertowHttpActionAdapter();
 
     @Override

@@ -6,6 +6,7 @@ import org.pac4j.core.context.FrameworkParameters;
 /**
  * Parameters for Undertow.
  *
+ * @param exchange the Undertow exchange
  * @author Sakib Hadziavdic
  * @since 6.0.0
  */

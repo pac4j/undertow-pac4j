@@ -23,10 +23,24 @@ public class Pac4jAccount implements Account {
     @Serial
     private static final long serialVersionUID = 2092398417475516512L;
 
+    /**
+     * The user profiles.
+     */
     private final List<UserProfile> profiles;
+    /**
+     * The roles of the user profiles.
+     */
     private final Set<String> roles;
+    /**
+     * The principal built from the first user profile.
+     */
     private final Principal principal;
 
+    /**
+     * Builds the account from the user profiles.
+     *
+     * @param profiles the user profiles
+     */
     public Pac4jAccount(final LinkedHashMap<String, UserProfile> profiles) {
         this.roles = new HashSet<>();
         this.profiles = ProfileHelper.flatIntoAProfileList(profiles);

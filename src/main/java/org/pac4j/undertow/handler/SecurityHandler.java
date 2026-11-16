@@ -3,6 +3,7 @@ package org.pac4j.undertow.handler;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.BlockingHandler;
+import io.undertow.util.CanonicalPathUtils;
 import org.pac4j.core.adapter.FrameworkAdapter;
 import org.pac4j.core.config.Config;
 import org.pac4j.core.engine.SecurityLogic;
@@ -29,6 +30,15 @@ public class SecurityHandler implements HttpHandler {
 
     private String matchers;
 
+    /**
+     * Builds the security handler.
+     *
+     * @param toWrap the handler to protect
+     * @param config the security configuration
+     * @param clients the names of the clients
+     * @param authorizers the names of the authorizers
+     * @param matchers the names of the matchers
+     */
     protected SecurityHandler(final HttpHandler toWrap, final Config config, final String clients, final String authorizers, final String matchers) {
         this.toWrap = toWrap;
         this.config = config;
@@ -37,22 +47,67 @@ public class SecurityHandler implements HttpHandler {
         this.matchers = matchers;
     }
 
+    /**
+     * Builds the security handler.
+     *
+     * @param toWrap the handler to protect
+     * @param config the security configuration
+     * @return the handler
+     */
     public static HttpHandler build(final HttpHandler toWrap, Config config) {
         return build(toWrap, config, null);
     }
 
+    /**
+     * Builds the security handler.
+     *
+     * @param toWrap the handler to protect
+     * @param config the security configuration
+     * @param clients the names of the clients
+     * @return the handler
+     */
     public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients) {
         return build(toWrap, config, clients, null);
     }
 
+    /**
+     * Builds the security handler.
+     *
+     * @param toWrap the handler to protect
+     * @param config the security configuration
+     * @param clients the names of the clients
+     * @param authorizers the names of the authorizers
+     * @return the handler
+     */
     public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers) {
         return build(toWrap, config, clients, authorizers, null);
     }
 
+    /**
+     * Builds the security handler.
+     *
+     * @param toWrap the handler to protect
+     * @param config the security configuration
+     * @param clients the names of the clients
+     * @param authorizers the names of the authorizers
+     * @param matchers the names of the matchers
+     * @return the handler
+     */
     public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers) {
         return build(toWrap, config, clients, authorizers, matchers, null);
     }
 
+    /**
+     * Builds the security handler.
+     *
+     * @param toWrap the handler to protect
+     * @param config the security configuration
+     * @param clients the names of the clients
+     * @param authorizers the names of the authorizers
+     * @param matchers the names of the matchers
+     * @param securityLogic the security logic
+     * @return the handler
+     */
     public static HttpHandler build(final HttpHandler toWrap, Config config, final String clients, final String authorizers, final String matchers, final SecurityLogic securityLogic) {
         final SecurityHandler securityHandler = new SecurityHandler(toWrap, config, clients, authorizers, matchers);
         if (securityLogic != null) {
@@ -63,6 +118,9 @@ public class SecurityHandler implements HttpHandler {
 
     @Override
     public void handleRequest(final HttpServerExchange exchange) throws Exception {
+        // the security decisions are taken on the canonical path (see UndertowWebContext#getPath()):
+        // the wrapped handlers must route on that same path, whether a CanonicalPathHandler is used or not
+        exchange.setRelativePath(CanonicalPathUtils.canonicalize(exchange.getRelativePath()));
         FrameworkAdapter.INSTANCE.applyDefaultSettingsIfUndefined(config);
         final SecurityLogic logic = securityLogic != null ? securityLogic : config.getSecurityLogic();
         logic.perform(
@@ -78,34 +136,74 @@ public class SecurityHandler implements HttpHandler {
         );
     }
 
+    /**
+     * Gets the security logic.
+     *
+     * @return the security logic
+     */
     protected SecurityLogic getSecurityLogic() {
         return securityLogic;
     }
 
+    /**
+     * Sets the security logic.
+     *
+     * @param securityLogic the security logic
+     */
     protected void setSecurityLogic(final SecurityLogic securityLogic) {
         this.securityLogic = securityLogic;
     }
 
+    /**
+     * Gets the names of the clients.
+     *
+     * @return the names of the clients
+     */
     public String getClients() {
         return clients;
     }
 
+    /**
+     * Sets the names of the clients.
+     *
+     * @param clients the names of the clients
+     */
     public void setClients(final String clients) {
         this.clients = clients;
     }
 
+    /**
+     * Gets the names of the authorizers.
+     *
+     * @return the names of the authorizers
+     */
     public String getAuthorizers() {
         return authorizers;
     }
 
+    /**
+     * Sets the names of the authorizers.
+     *
+     * @param authorizers the names of the authorizers
+     */
     public void setAuthorizers(final String authorizers) {
         this.authorizers = authorizers;
     }
 
+    /**
+     * Gets the names of the matchers.
+     *
+     * @return the names of the matchers
+     */
     public String getMatchers() {
         return matchers;
     }
 
+    /**
+     * Sets the names of the matchers.
+     *
+     * @param matchers the names of the matchers
+     */
     public void setMatchers(final String matchers) {
         this.matchers = matchers;
     }

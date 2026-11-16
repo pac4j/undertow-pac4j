@@ -17,6 +17,12 @@ import java.util.LinkedHashMap;
  */
 public class UndertowProfileManager extends ProfileManager {
 
+    /**
+     * Builds the profile manager.
+     *
+     * @param context the web context
+     * @param sessionStore the session store
+     */
     public UndertowProfileManager(final WebContext context, final SessionStore sessionStore) {
         super(context, sessionStore);
     }

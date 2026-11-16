@@ -4,6 +4,7 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.server.handlers.CookieImpl;
 import io.undertow.server.handlers.form.FormData;
 import io.undertow.server.handlers.form.FormDataParser;
+import io.undertow.util.CanonicalPathUtils;
 import io.undertow.util.Headers;
 import io.undertow.util.HttpString;
 
@@ -24,10 +25,20 @@ public class UndertowWebContext implements WebContext {
 
     private final HttpServerExchange exchange;
 
+    /**
+     * Builds the web context for an exchange.
+     *
+     * @param exchange the Undertow exchange
+     */
     public UndertowWebContext(final HttpServerExchange exchange) {
         this.exchange = exchange;
     }
 
+    /**
+     * Gets the Undertow exchange.
+     *
+     * @return the Undertow exchange
+     */
     public HttpServerExchange getExchange() {
         return exchange;
     }
@@ -154,9 +165,22 @@ public class UndertowWebContext implements WebContext {
         RequestAttributesMap.getOrInitialize(getExchange()).put(name, value);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * <p>The path is compared with configured paths (path matchers, callback URL resolvers) to take security decisions,
+     * so it must be the path Undertow uses to route the request and not the raw request path:
+     * {@link HttpServerExchange#getRequestPath()} is decoded, but not canonicalized, and {@code /public/../admin} would
+     * bypass the rules applying to the {@code /admin} resource reached after a {@code CanonicalPathHandler}.</p>
+     *
+     * <p>The path is thus made of the part already resolved by the previous handlers and of the remaining relative path,
+     * canonicalized by Undertow itself (like the {@code CanonicalPathHandler} does): this is exactly what the next handlers
+     * route on. Using another canonicalization algorithm (or decoding the path a second time) would create
+     * new discrepancies between the security decisions and the routing.</p>
+     */
     @Override
     public String getPath() {
-        return getExchange().getRequestPath();
+        return getExchange().getResolvedPath() + CanonicalPathUtils.canonicalize(getExchange().getRelativePath());
     }
 
     @Override

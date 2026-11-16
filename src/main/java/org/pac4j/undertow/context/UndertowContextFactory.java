@@ -13,6 +13,16 @@ import org.pac4j.core.exception.TechnicalException;
  */
 public class UndertowContextFactory implements WebContextFactory {
 
+    /**
+     * Builds the web context factory.
+     */
+    public UndertowContextFactory() {
+        // nothing to do
+    }
+
+    /**
+     * The singleton instance.
+     */
     public static final UndertowContextFactory INSTANCE = new UndertowContextFactory();
 
     @Override

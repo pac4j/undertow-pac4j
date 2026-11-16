@@ -29,15 +29,33 @@ public class LogoutHandler implements HttpHandler {
 
     private Boolean centralLogout;
 
+    /**
+     * Builds the logout handler.
+     *
+     * @param config the security configuration
+     */
     public LogoutHandler(final Config config) {
         this.config = config;
     }
 
+    /**
+     * Builds the logout handler.
+     *
+     * @param config the security configuration
+     * @param defaultUrl the default url
+     */
     public LogoutHandler(final Config config, final String defaultUrl) {
         this(config);
         this.defaultUrl = defaultUrl;
     }
 
+    /**
+     * Builds the logout handler.
+     *
+     * @param config the security configuration
+     * @param defaultUrl the default url
+     * @param logoutUrlPattern the logout url pattern
+     */
     public LogoutHandler(final Config config, final String defaultUrl, final String logoutUrlPattern) {
         this(config, defaultUrl);
         this.logoutUrlPattern = logoutUrlPattern;
@@ -67,50 +85,110 @@ public class LogoutHandler implements HttpHandler {
         );
     }
 
+    /**
+     * Gets the logout logic.
+     *
+     * @return the logout logic
+     */
     public LogoutLogic getLogoutLogic() {
         return logoutLogic;
     }
 
+    /**
+     * Sets the logout logic.
+     *
+     * @param logoutLogic the logout logic
+     */
     public void setLogoutLogic(final LogoutLogic logoutLogic) {
         this.logoutLogic = logoutLogic;
     }
 
+    /**
+     * Gets the default url.
+     *
+     * @return the default url
+     */
     public String getDefaultUrl() {
         return this.defaultUrl;
     }
 
+    /**
+     * Sets the default url.
+     *
+     * @param defaultUrl the default url
+     */
     public void setDefaultUrl(final String defaultUrl) {
         this.defaultUrl = defaultUrl;
     }
 
+    /**
+     * Gets the logout url pattern.
+     *
+     * @return the logout url pattern
+     */
     public String getLogoutUrlPattern() {
         return logoutUrlPattern;
     }
 
+    /**
+     * Sets the logout url pattern.
+     *
+     * @param logoutUrlPattern the logout url pattern
+     */
     public void setLogoutUrlPattern(final String logoutUrlPattern) {
         this.logoutUrlPattern = logoutUrlPattern;
     }
 
+    /**
+     * Gets whether a local logout must be performed.
+     *
+     * @return whether a local logout must be performed
+     */
     public Boolean getLocalLogout() {
         return localLogout;
     }
 
+    /**
+     * Sets whether a local logout must be performed.
+     *
+     * @param localLogout whether a local logout must be performed
+     */
     public void setLocalLogout(final Boolean localLogout) {
         this.localLogout = localLogout;
     }
 
+    /**
+     * Gets whether the session must be destroyed.
+     *
+     * @return whether the session must be destroyed
+     */
     public Boolean getDestroySession() {
         return destroySession;
     }
 
+    /**
+     * Sets whether the session must be destroyed.
+     *
+     * @param destroySession whether the session must be destroyed
+     */
     public void setDestroySession(final Boolean destroySession) {
         this.destroySession = destroySession;
     }
 
+    /**
+     * Gets whether a central logout must be performed.
+     *
+     * @return whether a central logout must be performed
+     */
     public Boolean getCentralLogout() {
         return centralLogout;
     }
 
+    /**
+     * Sets whether a central logout must be performed.
+     *
+     * @param centralLogout whether a central logout must be performed
+     */
     public void setCentralLogout(final Boolean centralLogout) {
         this.centralLogout = centralLogout;
     }

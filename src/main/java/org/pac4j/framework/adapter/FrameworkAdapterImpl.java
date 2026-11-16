@@ -14,6 +14,13 @@ import org.pac4j.undertow.profile.UndertowProfileManager;
  */
 public class FrameworkAdapterImpl extends DefaultFrameworkAdapter {
 
+    /**
+     * Builds the framework adapter.
+     */
+    public FrameworkAdapterImpl() {
+        // nothing to do
+    }
+
     @Override
     public void applyDefaultSettingsIfUndefined(final Config config) {
         // before the parent call which defines the default pac4j profile manager factory
